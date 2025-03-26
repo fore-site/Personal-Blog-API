@@ -46,6 +46,8 @@ def get_articles():
 def get_article(article_id):
     with Session(engine) as session:
         single_article = session.scalars(select(Articles).where(Articles.id == article_id)).all()
+        if not single_article:
+            return {"message": "resource not found"}, 400
     return jsonify(single_article), 200
 
 # FILTER YOUR SEARCH
@@ -79,39 +81,54 @@ def create_article():
 def update_full_article(article_id):
     request_body = request.get_json()
 
-    # CHECK IF WHOLE RESOURCE IS UPDATED
-    updated_resource = {
-        "title": request_body["title"],
-        "category": request_body["category"],
-        "tags": ", ".join(request_body["tags"]),
-        "content": request_body["content"],
-        "updatedAt": datetime.now()
-    }
-    with Session(engine) as session:
-        session.execute(
-            update(Articles),
-            [
-                updated_resource
-            ]
-        )
-        session.commit()
-        updated_article = session.scalars(select(Articles).where(Articles.id == article_id)).all()
-    return jsonify(updated_article), 201
+    # CHECK IF WHOLE RESOURCE WAS UPDATED
+    try:
+        updated_resource = {
+            "id": article_id,
+            "title": request_body["title"],
+            "category": request_body["category"],
+            "tags": ", ".join(request_body["tags"]),
+            "content": request_body["content"],
+            "updatedAt": datetime.now()
+        }
+    except KeyError:
+        return {"message": "update entire resource in a PUT request"}, 400
+    else:
+        with Session(engine) as session:
+        # CHECK IF ARTICLE EXISTS
+            article = session.execute(select(Articles).where(Articles.id == article_id)).all()
+            if not article:
+                return {"message": "resource not found"}, 400
+            session.execute(
+                update(Articles),
+                [
+                    updated_resource
+                ]
+            )
+            session.commit()
+            updated_article = session.scalars(select(Articles).where(Articles.id == article_id)).all()
+        return jsonify(updated_article), 201
 
 # UPDATE PART OF THE RESOURCE
 @app.patch("/article/<article_id>")
 def update_part_article(article_id):
-    pass
+    request_body = request.get_json()
+    print(type(request_body))
+    return "Okay"
 
 # DELETE ARTICLE
 @app.delete("/article/<article_id>")
 def delete_article(article_id):
     with Session(engine) as session:
+    # CHECK IF ARTICLE EXISTS
+        article = session.execute(select(Articles).where(Articles.id == article_id)).all()
+        if not article:
+            return {"message": "resource not found"}, 400
         session.execute(
             delete(Articles).where(Articles.id == article_id)
         )
         session.commit()
-    return "Article successfully deleted", 204
+    return {"message": "Article successfully deleted"}, 200
 
 
 if __name__ == "__main__":
