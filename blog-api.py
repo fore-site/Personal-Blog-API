@@ -47,7 +47,7 @@ def get_article(article_id):
     with Session(engine) as session:
         single_article = session.scalars(select(Articles).where(Articles.id == article_id)).all()
         if not single_article:
-            return {"message": "resource not found"}, 400
+            return {"message": "article not found"}, 404
     return jsonify(single_article), 200
 
 # FILTER YOUR SEARCH
@@ -56,74 +56,69 @@ def get_article(article_id):
 @app.post("/article")
 def create_article():
     request_body = request.get_json()
-    new_entry = {
-        "title": request_body["title"], 
-        "category": request_body["category"],
-        "tags": ", ".join(request_body["tags"]), 
-        "content": request_body["content"],
-        "createdAt": datetime.now(), 
-        "updatedAt": datetime.now()
-        }
+    request_body["tags"] = ", ".join(request_body["tags"])
+    request_body.update({"createdAt": datetime.now(), "updatedAt": datetime.now()})
+
     # request.get_data()
     # request_body = request.data.decode("utf-8")
     with Session(engine) as session:
         session.execute(
             insert(Articles), [
-                new_entry
+                request_body
             ]
         )
         session.commit()
-    
-    return jsonify(new_entry), 201
+    return request_body, 201
 
 # UPDATE THE ENTIRE RESOURCE
 @app.put("/article/<article_id>")
 def update_full_article(article_id):
     request_body = request.get_json()
 
-    # CHECK IF WHOLE RESOURCE WAS UPDATED
-    try:
-        updated_resource = {
-            "id": article_id,
-            "title": request_body["title"],
-            "category": request_body["category"],
-            "tags": ", ".join(request_body["tags"]),
-            "content": request_body["content"],
-            "updatedAt": datetime.now()
-        }
-    except KeyError:
-        return {"message": "update entire resource in a PUT request"}, 400
-    else:
-        with Session(engine) as session:
+    with Session(engine) as session:
         # CHECK IF ARTICLE EXISTS
-            article = session.execute(select(Articles).where(Articles.id == article_id)).all()
-            if not article:
-                return {"message": "resource not found"}, 400
-            session.execute(
-                update(Articles),
-                [
-                    updated_resource
-                ]
-            )
-            session.commit()
-            updated_article = session.scalars(select(Articles).where(Articles.id == article_id)).all()
-        return jsonify(updated_article), 201
+        article = session.execute(select(Articles).where(Articles.id == article_id)).all()
+        if not article:
+            return {"message": "article not found"}, 404
+        # CHECK IF WHOLE RESOURCE WAS UPDATED
+        if len(request_body) != 4:
+            return {"message": "Update every article value in a PUT request"}, 400
+        request_body.update({"id": article_id, "updatedAt": datetime.now()})
+        # CONVERT LIST DATA TYPE TO STRING
+        request_body["tags"] = ", ".join(request_body["tags"])
+        session.execute(update(Articles),[request_body])
+        session.commit()
+
+    return request_body, 201
 
 # UPDATE PART OF THE RESOURCE
 @app.patch("/article/<article_id>")
 def update_part_article(article_id):
     request_body = request.get_json()
-    print(type(request_body))
-    return "Okay"
+    with Session(engine) as session:
+
+        # CHECK IF ARTICLE EXISTS
+        article = session.execute(select(Articles).where(Articles.id == article_id)).all()
+        if not article:
+            return {"message": "article not found"}, 404
+        request_body.update({"id": article_id, "updatedAt": datetime.now()})
+        # CONVERT LIST DATA TYPE TO STRING
+        if request_body["tags"]:
+            request_body["tags"] = ", ".join(request_body["tags"])
+        session.execute(update(Articles), [request_body])
+        session.commit()
+
+    return request_body, 201
 
 # DELETE ARTICLE
 @app.delete("/article/<article_id>")
 def delete_article(article_id):
     with Session(engine) as session:
+
     # CHECK IF ARTICLE EXISTS
         article = session.execute(select(Articles).where(Articles.id == article_id)).all()
         if not article:
-            return {"message": "resource not found"}, 400
+            return {"message": "article not found"}, 400
         session.execute(
             delete(Articles).where(Articles.id == article_id)
         )
