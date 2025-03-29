@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from sqlalchemy import create_engine, select, insert, update, delete, TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
+from sqlalchemy import func
 from dataclasses import dataclass
 from datetime import datetime
 import os
@@ -37,9 +38,16 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 # GET ALL ARTICLES
 @app.get("/article")
 def get_articles():
+    if request.args:
+        if len(request.args) == 1:
+            key = list(request.args.keys())[0]
+            value = request.args.get(key).lower()
+            with Session(engine) as session:
+                result = session.scalars(select(Articles).filter(func.lower(getattr(Articles, key)) == value)).all()
+            return (result), 200
     with Session(engine) as session:
         all_articles = session.scalars(select(Articles)).all()
-    return jsonify(all_articles), 200
+    return (all_articles), 200
 
 # GET AN ARTICLE BY ID
 @app.get("/article/<article_id>")
@@ -47,10 +55,14 @@ def get_article(article_id):
     with Session(engine) as session:
         single_article = session.scalars(select(Articles).where(Articles.id == article_id)).all()
         if not single_article:
-            return {"message": "article not found"}, 404
-    return jsonify(single_article), 200
+            return {"message": "Article not found"}, 404
+    return (single_article), 200
 
 # FILTER YOUR SEARCH
+@app.get("/article/filter")
+def filter_result():
+    print(list(request.args.keys())[0])
+    return "Okay"
 
 # CREATE AN ARTICLE
 @app.post("/article")
@@ -59,8 +71,6 @@ def create_article():
     request_body["tags"] = ", ".join(request_body["tags"])
     request_body.update({"createdAt": datetime.now(), "updatedAt": datetime.now()})
 
-    # request.get_data()
-    # request_body = request.data.decode("utf-8")
     with Session(engine) as session:
         session.execute(
             insert(Articles), [
@@ -79,10 +89,10 @@ def update_full_article(article_id):
         # CHECK IF ARTICLE EXISTS
         article = session.execute(select(Articles).where(Articles.id == article_id)).all()
         if not article:
-            return {"message": "article not found"}, 404
+            return {"message": "Article not found"}, 404
         # CHECK IF WHOLE RESOURCE WAS UPDATED
         if len(request_body) != 4:
-            return {"message": "Update every article value in a PUT request"}, 400
+            return {"message": "Update all the Article values in a PUT request"}, 400
         request_body.update({"id": article_id, "updatedAt": datetime.now()})
         # CONVERT LIST DATA TYPE TO STRING
         request_body["tags"] = ", ".join(request_body["tags"])
@@ -100,7 +110,7 @@ def update_part_article(article_id):
         # CHECK IF ARTICLE EXISTS
         article = session.execute(select(Articles).where(Articles.id == article_id)).all()
         if not article:
-            return {"message": "article not found"}, 404
+            return {"message": "Article not found"}, 404
         request_body.update({"id": article_id, "updatedAt": datetime.now()})
         # CONVERT LIST DATA TYPE TO STRING
         if request_body["tags"]:
@@ -118,7 +128,7 @@ def delete_article(article_id):
     # CHECK IF ARTICLE EXISTS
         article = session.execute(select(Articles).where(Articles.id == article_id)).all()
         if not article:
-            return {"message": "article not found"}, 400
+            return {"message": "Article not found"}, 404
         session.execute(
             delete(Articles).where(Articles.id == article_id)
         )
