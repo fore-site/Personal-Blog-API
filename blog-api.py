@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from sqlalchemy import create_engine, select, insert, update, delete, TIMESTAMP
+from sqlalchemy import create_engine, select, insert, update, delete, TIMESTAMP, or_
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 from sqlalchemy import func
 from dataclasses import dataclass
@@ -29,40 +29,96 @@ class Articles(Base):
     createdAt: Mapped[datetime]
     updatedAt: Mapped[datetime]
 
+
+def key_is_tags(key):
+    value = request.args.get(key).lower()
+    if "-" in value:
+        values = value.split("-")
+        result = select(Articles)
+        for each_tag in values:
+            result = result.filter(func.lower
+            (getattr(Articles, key)).icontains(each_tag))
+            # result = session.scalars(result).all()
+        return result
+    result = select(Articles).filter(func.lower
+    (getattr(Articles, key)).icontains(value))
+    return result
 # Base.metadata.create_all(engine)
 
 # CREATE FLASK APP
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
+# with Session(engine) as session:
+#     result = select(Articles)
+#     x = result.filter(Articles.id == 2)
+#     y = x.filter(Articles.category == "Art")
+#     print(session.scalars(y).all())
+
 # GET ALL ARTICLES
 @app.get("/article")
 def get_articles():
     if request.args:
+        keys = list(request.args.keys())
+
+        # IF ONLY ONE ARGUMENT
         if len(request.args) == 1:
-            key = list(request.args.keys())[0]
+            key = keys[0]
+            if key == "tags":
+                with Session(engine) as session:
+                    result = session.scalars(key_is_tags(key)).all()
+                    if result:
+                        return result, 200
+                    else:
+                        return {"message": "Article not found"}, 404
+            elif key == "term":
+                value = request.args.get(key).lower()
+                with Session(engine) as session:
+                    result = select(Articles).filter(or_(
+                    Articles.tags.icontains(value), Articles.content.icontains(value), Articles.category.contains(value)))
+                    result = session.scalars(result).all()
+                    if result:
+                        return result, 200
+                    else:
+                        return {"message": "Article not found"}, 404
             value = request.args.get(key).lower()
             with Session(engine) as session:
                 result = session.scalars(select(Articles).filter(func.lower(getattr(Articles, key)) == value)).all()
-            return (result), 200
+            if result:
+                return result, 200
+            else:
+                return {"message": "Article not found"}, 404
+        
+        # IF MULTIPLE URL ARGUMENTS
+        with Session(engine) as session:
+            result = select(Articles)
+        for each_key in keys:
+            if each_key == "tags":
+                result = key_is_tags(each_key)
+            elif each_key == "term":
+                value = request.args.get(each_key).lower()
+                result = select(Articles).filter(or_(
+                Articles.tags.icontains(value), Articles.content.icontains(value), Articles.category.contains(value)))
+            else:
+                result = result.filter(func.lower(getattr(Articles, each_key))
+                == request.args.get(each_key).lower())
+        result = session.scalars(result).all()
+        if result:
+            return result, 200
+        else:
+            return {"message": "Article not found"}, 404
     with Session(engine) as session:
         all_articles = session.scalars(select(Articles)).all()
     return (all_articles), 200
 
 # GET AN ARTICLE BY ID
-@app.get("/article/<article_id>")
+@app.get("/article/<int:article_id>")
 def get_article(article_id):
     with Session(engine) as session:
         single_article = session.scalars(select(Articles).where(Articles.id == article_id)).all()
         if not single_article:
             return {"message": "Article not found"}, 404
     return (single_article), 200
-
-# FILTER YOUR SEARCH
-@app.get("/article/filter")
-def filter_result():
-    print(list(request.args.keys())[0])
-    return "Okay"
 
 # CREATE AN ARTICLE
 @app.post("/article")
