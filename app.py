@@ -1,34 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from sqlalchemy import create_engine, select, insert, update, delete, TIMESTAMP, or_
+from flask import Flask, request, jsonify
+from sqlalchemy import create_engine, select, insert, update, delete, TIMESTAMP, or_, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
-from sqlalchemy import func
 from dataclasses import dataclass
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+from models.post import Articles
 
 load_dotenv(".flaskenv")
-
-# CREATE DATABASE
-engine = create_engine("sqlite:///blog.db", echo=True)
-
-class Base(DeclarativeBase):
-    type_annotation_map = {
-        datetime: TIMESTAMP(timezone=True)
-    }
-
-# CREATE ARTICLES TABLE
-@dataclass
-class Articles(Base):
-    __tablename__ = "articles"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str]
-    category: Mapped[str]
-    tags: Mapped[str]
-    content: Mapped[str]
-    createdAt: Mapped[datetime]
-    updatedAt: Mapped[datetime]
-
 
 def key_is_tags(key):
     value = request.args.get(key).lower()
@@ -43,17 +22,11 @@ def key_is_tags(key):
     result = select(Articles).filter(func.lower
     (getattr(Articles, key)).icontains(value))
     return result
-# Base.metadata.create_all(engine)
+
 
 # CREATE FLASK APP
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-
-# with Session(engine) as session:
-#     result = select(Articles)
-#     x = result.filter(Articles.id == 2)
-#     y = x.filter(Articles.category == "Art")
-#     print(session.scalars(y).all())
 
 # GET ALL ARTICLES
 @app.get("/article")
@@ -118,7 +91,7 @@ def get_article(article_id):
         single_article = session.scalars(select(Articles).where(Articles.id == article_id)).all()
         if not single_article:
             return {"message": "Article not found"}, 404
-    return (single_article), 200
+    return single_article, 200
 
 # CREATE AN ARTICLE
 @app.post("/article")
@@ -155,7 +128,7 @@ def update_full_article(article_id):
         session.execute(update(Articles),[request_body])
         session.commit()
 
-    return request_body, 201
+    return request_body, 200
 
 # UPDATE PART OF THE RESOURCE
 @app.patch("/article/<article_id>")
@@ -174,7 +147,7 @@ def update_part_article(article_id):
         session.execute(update(Articles), [request_body])
         session.commit()
 
-    return request_body, 201
+    return request_body, 200
 
 # DELETE ARTICLE
 @app.delete("/article/<article_id>")
@@ -189,8 +162,8 @@ def delete_article(article_id):
             delete(Articles).where(Articles.id == article_id)
         )
         session.commit()
-    return {"message": "Article successfully deleted"}, 200
+    return 204
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
