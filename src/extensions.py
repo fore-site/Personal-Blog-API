@@ -1,7 +1,6 @@
-from sqlalchemy import create_engine, select, insert, update, delete, TIMESTAMP, or_, func
+from sqlalchemy import create_engine, TIMESTAMP
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 from datetime import datetime
-
 
 class Base(DeclarativeBase):
     type_annotation_map = {
