@@ -1,4 +1,4 @@
-from src.extensions import Base
+from src.extensions import Base, engine
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 from dataclasses import dataclass
@@ -13,3 +13,5 @@ class Posts(Base):
     content: Mapped[str]
     createdAt: Mapped[datetime]
     updatedAt: Mapped[datetime]
+
+# Base.metadata.create_all(engine)

@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, TIMESTAMP
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
+from sqlalchemy.orm import DeclarativeBase
 from datetime import datetime
 
 class Base(DeclarativeBase):
@@ -9,4 +9,3 @@ class Base(DeclarativeBase):
 
 engine = create_engine("sqlite:///blog.db", echo=True)
 
-# Base.metadata.create_all(engine)
