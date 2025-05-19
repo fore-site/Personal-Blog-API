@@ -6,64 +6,25 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, update, insert, delete, or_, func
 from src.extensions import engine
 from models import Posts
-from src.schemas.post import PostSchema, PostPutSchema, PostUpdateSchema
-
+from src.schemas.post import PostSchema, PostPutSchema, PostUpdateSchema, PostQuerySchema
 
 blp = Blueprint("posts", __name__, description="Operations on Posts")
 
-def key_is_tags(key):
-    value = request.args.get(key).lower()
-    if "-" in value:
-        values = value.split("-")
-        result = select(Posts)
-        for each_tag in values:
-            result = result.filter(func.lower
-            (getattr(Posts, key)).icontains(each_tag))
-        return result
-    result = select(Posts).filter(func.lower
-    (getattr(Posts, key)).icontains(value))
-    return result
-
 @blp.route("/post")
 class Post(MethodView):
-    def get(self):
-        if request.args:
-            keys = list(request.args.keys())
-
-        # IF ONLY ONE ARGUMENT
-            if len(request.args) == 1:
-                key = keys[0]
-                if key == "tags":
-                    with Session(engine) as session:
-                        result = session.scalars(key_is_tags(key)).all()
-                        if result:
-                            return result, 200
-                        else:
-                            abort(404, message="Post not found.")
-                elif key == "term":
-                    value = request.args.get(key).lower()
-                    with Session(engine) as session:
-                        result = select(Posts).filter(or_(
-                        Posts.tags.icontains(value), Posts.content.icontains(value), Posts.category.contains(value)))
-                        result = session.scalars(result).all()
-                        if result:
-                            return result, 200
-                        else:
-                            return {"message": "post not found"}, 404
-                value = request.args.get(key).lower()
-                with Session(engine) as session:
-                    result = session.scalars(select(Posts).filter(func.lower(getattr(Posts, key)) == value)).all()
-                if result:
-                    return result, 200
-                else:
-                    return {"message": "post not found"}, 404
-        
+    @blp.arguments(PostQuerySchema, location="query")
+    def get(self, query_args):
+        if query_args:
+            # MAKE A LIST OF THE KEYS IN THE KEY-VALUE PAIRS OF THE QUERY ARGUMENT
+            keys = list(query_args.keys())
         # IF MULTIPLE URL ARGUMENTS
             with Session(engine) as session:
                 result = select(Posts)
             for each_key in keys:
+                # GET EACH VALUE OF THE QUERY ARGUMENT
+                value = query_args.get(each_key)
                 if each_key == "tags":
-                    result = key_is_tags(each_key)
+                    result = result.filter(func.lower(getattr(Posts, each_key)).icontains(value))
                 elif each_key == "term":
                     value = request.args.get(each_key).lower()
                     result = select(Posts).filter(or_(
@@ -137,6 +98,8 @@ class EachPost(MethodView):
                 post_body["tags"] = ", ".join(post_body["tags"])
             session.execute(update(Posts), [post_body])
             session.commit()
+        # DO THIS SO IT DOES NOT BREAK INTO INDIVIDUAL LETTERS WHEN RETURNED
+        post_body["tags"] = post_body["tags"].split(",")
 
         return post_body, 200
 

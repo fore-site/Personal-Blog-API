@@ -22,3 +22,7 @@ class PostPutSchema(ma.Schema):
     content = ma.fields.Str(required=True)
     title = ma.fields.Str(required=True)
     updatedAt = ma.fields.DateTime(dump_only=True)
+
+class PostQuerySchema(ma.Schema):
+    tags = ma.fields.Str()
+    term = ma.fields.Str()
