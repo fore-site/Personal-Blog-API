@@ -1,11 +1,9 @@
-from sqlalchemy import create_engine, TIMESTAMP
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, MappedAsDataclass
 from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
 
-class Base(DeclarativeBase):
-    type_annotation_map = {
-        datetime: TIMESTAMP(timezone=True)
-    }
+class Base(DeclarativeBase, MappedAsDataclass):
+    pass
 
-engine = create_engine("sqlite:///blog.db", echo=True)
+db = SQLAlchemy(model_class=Base)
 
