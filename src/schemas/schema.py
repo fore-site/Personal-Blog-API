@@ -8,8 +8,8 @@ class PostSchema(ma.Schema):
     title = ma.fields.Str(required=True)
     createdAt = ma.fields.DateTime(dump_only=True)
     updatedAt = ma.fields.DateTime(dump_only=True)
+    user_id = ma.fields.Int(required=True, load_only=True)
     user = ma.fields.Nested(lambda: UserSchema(), dump_only=True)
-    user_id = ma.fields.Int(required=True)
 
 class PostUpdateSchema(ma.Schema):
     category = ma.fields.Str()
@@ -34,5 +34,5 @@ class UserSchema(ma.Schema):
     username = ma.fields.Str(required=True)
     email = ma.fields.Str(required=True)
     password = ma.fields.Str(required=True)
-    posts = ma.fields.List(ma.fields.Nested(lambda: PostSchema()), dump_only=True)
     createdAt = ma.fields.DateTime(dump_only=True)
+    posts = ma.fields.List(ma.fields.Nested(lambda: PostSchema()), dump_only=True)

@@ -1,7 +1,6 @@
 from flask.views import MethodView
 from flask_smorest import abort, Blueprint
 from datetime import datetime
-from sqlalchemy.orm import Session
 from sqlalchemy import select, update, insert, delete, or_, func
 from src.extensions import db
 from models import Posts

@@ -11,4 +11,4 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(String, unique=True)
     password: Mapped[str] = mapped_column(String)
     createdAt = mapped_column(TIMESTAMP)
-    posts = relationship("Posts", back_populates="user")
+    posts = relationship("Posts", back_populates="user", lazy="dynamic")
