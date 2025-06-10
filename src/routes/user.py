@@ -12,7 +12,9 @@ blp = Blueprint("user", __name__, description="Operation on User")
 @blp.route("/user")
 class UserRoute(MethodView):
     def get(self):
-        result = db.session.scalars(select(User)).all()
+        all_users = db.session.scalars(select(User)).all()
+        user_schema = UserSchema(many=True)
+        result = user_schema.dump(all_users)
         return result, 200
     
     @blp.arguments(UserSchema)
@@ -25,6 +27,12 @@ class UserRoute(MethodView):
 
 @blp.route("/user/<int:user_id>")
 class UserIDRoute(MethodView):
+    def get(self):
+        single_user = db.session.execute(select(User).where(User.id == user_id)).all()
+        user_schema = UserSchema(many=True)
+        result = user_schema.dump(single_user)
+        return result, 200
+
     def delete(self, user_id):
         user = db.session.execute(select(User).where(User.id == user_id)).all()
         if not user:

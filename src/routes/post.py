@@ -1,4 +1,5 @@
 from flask.views import MethodView
+from flask import jsonify
 from flask_smorest import abort, Blueprint
 from datetime import datetime
 from sqlalchemy import select, update, insert, delete, or_, func
@@ -11,6 +12,7 @@ blp = Blueprint("posts", __name__, description="Operations on Posts")
 @blp.route("/post")
 class Post(MethodView):
     @blp.arguments(PostQuerySchema, location="query")
+    # @blp.response(200, PostSchema)
     def get(self, query_args):
         if query_args:
             # MAKE A LIST OF THE KEYS IN THE KEY-VALUE PAIRS OF THE QUERY ARGUMENT
@@ -34,29 +36,31 @@ class Post(MethodView):
                 return result, 200
             else:
                 abort(404, message="Post not found.")
-        all_Posts = db.session.scalars(select(Posts)).all()
-        return all_Posts, 200
+        all_posts = db.session.scalars(select(Posts)).all()
+        schema = PostSchema(many=True)
+        result = schema.dump(all_posts)
+        return (result), 200
     
     @blp.arguments(PostSchema)
     @blp.response(201, PostSchema)
     def post(self, post_body):
         post_body["tags"] = ", ".join(post_body["tags"])
         post_body.update({"createdAt": datetime.now(), "updatedAt": datetime.now()})
-        new_post = Posts(**post_body)
-        print(new_post)
-            # session.execute(insert(Posts), [post_body])
-        db.session.add(new_post)
+        db.session.execute(insert(Posts), [post_body])
         db.session.commit()
         # post_body["tags"] = post_body["tags"].split(",")
         return post_body 
 
 @blp.route("/post/<int:post_id>")
 class EachPost(MethodView):
+    # @blp.response(200, PostSchema)
     def get(self, post_id):
         single_post = db.session.scalars(select(Posts).where(Posts.id == post_id)).all()
         if not single_post:
             abort(404, message="Post not found.")
-        return single_post, 200
+        post_schema = PostSchema(many=True)
+        result = post_schema.dump(single_post)
+        return result, 200
     
     @blp.arguments(PostPutSchema)
     @blp.response(200, PostPutSchema)
@@ -70,9 +74,6 @@ class EachPost(MethodView):
         post_body["tags"] = ", ".join(post_body["tags"])
         db.session.execute(update(Posts),[post_body])
         db.session.commit()
-        # DO THIS SO IT DOES NOT BREAK INTO INDIVIDUAL LETTERS WHEN RETURNED
-        post_body["tags"] = post_body["tags"].split(",")
-
         return post_body
 
     @blp.arguments(PostUpdateSchema)
