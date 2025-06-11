@@ -1,2 +1,2 @@
-from models.post import Posts, User
+from models.model import Post, User, Comment
 # from models.user import User

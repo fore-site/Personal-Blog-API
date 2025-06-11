@@ -4,8 +4,8 @@ import os
 from dotenv import load_dotenv
 from src.routes.post import blp as PostBlueprint
 from src.routes.user import blp as UserBlueprint
+from src.routes.comment import blp as CommentBlueprint
 from src.extensions import db
-from models import Posts, User
 
 load_dotenv(".flaskenv")
 
@@ -30,6 +30,7 @@ def create_app():
 
     api.register_blueprint(PostBlueprint)
     api.register_blueprint(UserBlueprint)
+    api.register_blueprint(CommentBlueprint)
 
     if __name__ == "__main__":
         app.run()
