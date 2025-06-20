@@ -3,12 +3,12 @@ from models import Post
     
 class UserSchema(ma.Schema):
     id = ma.fields.Int(dump_only=True)
-    username = ma.fields.Str()
-    email = ma.fields.Str()
-    password = ma.fields.Str()
+    username = ma.fields.Str(required=True)
+    email = ma.fields.Str(required=True)
+    password = ma.fields.Str(required=True)
     createdAt = ma.fields.DateTime(dump_only=True)
     posts = ma.fields.List(ma.fields.Nested(lambda: PostSchema(only=("id", "title", "content"))), dump_only=True)
-    comments = ma.fields.List(ma.fields.Nested(lambda: CommentSchema(only=("content", "post_id"))), dump_only=True)
+    comments = ma.fields.List(ma.fields.Nested(lambda: CommentSchema(only=("content", "post"))), dump_only=True)
 
 class PostSchema(ma.Schema):
     class Meta():
@@ -23,16 +23,17 @@ class PostSchema(ma.Schema):
     updatedAt = ma.fields.DateTime(dump_only=True)
     user_id = ma.fields.Int(required=True, load_only=True)
     user = ma.fields.Nested(UserSchema, only=("id","username"), dump_only=True)
-    comments = ma.fields.List(ma.fields.Nested(lambda: CommentSchema()), dump_only=True)
-    comment_count = ma.fields.Int()
+    comments = ma.fields.List(ma.fields.Nested(lambda: CommentSchema(only=("content", "user"))), dump_only=True)
+    comment_count = ma.fields.Int(dump_only=True)
 
 class CommentSchema(ma.Schema):
-    content = ma.fields.Str()
-    postedAt = ma.fields.DateTime()
-    editedAt = ma.fields.DateTime()
-    user_id = ma.fields.Int()
-    post_id = ma.fields.Int()
-    post = ma.fields.Nested(PostSchema, only=("title", "content", "createdAt", "updatedAt"), dump_only=True)
+    id = ma.fields.Int(dump_only=True)
+    content = ma.fields.Str(required=True)
+    postedAt = ma.fields.DateTime(dump_only=True)
+    editedAt = ma.fields.DateTime(dump_only=True)
+    user_id = ma.fields.Int(required=True, load_only=True)
+    post_id = ma.fields.Int(required=True, load_only=True)
+    post = ma.fields.Nested(PostSchema, only=("id", "title", "content"), dump_only=True)
     user = ma.fields.Nested(UserSchema, only=("id", "username"), dump_only=True)
 
 class PostUpdateSchema(ma.Schema):

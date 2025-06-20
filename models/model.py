@@ -1,5 +1,5 @@
 from src.extensions import db
-from sqlalchemy import ForeignKey, func, select
+from sqlalchemy import ForeignKey, func, select, DATETIME
 from sqlalchemy.orm import mapped_column, relationship, Mapped, column_property
 from datetime import datetime
 from typing import List
@@ -10,7 +10,7 @@ class User(db.Model):
     username: Mapped[str] = mapped_column(unique=True)
     email: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str]
-    createdAt: Mapped[datetime] = mapped_column()
+    createdAt: Mapped[datetime] = mapped_column(DATETIME)
     posts: Mapped[List["Post"]] = relationship(back_populates="user")
     comments: Mapped[List["Comment"]] = relationship(back_populates="user")
 
@@ -18,8 +18,8 @@ class Comment(db.Model):
     __tablename__ = "comments"
     id: Mapped[int] = mapped_column(primary_key=True)
     content: Mapped[str]
-    postedAt: Mapped[datetime] = mapped_column()
-    editedAt: Mapped[datetime] = mapped_column()
+    postedAt: Mapped[datetime] = mapped_column(DATETIME)
+    editedAt: Mapped[datetime] = mapped_column(DATETIME)
     post_id: Mapped[int] = mapped_column(ForeignKey("posts.id"))
     post: Mapped["Post"] = relationship(back_populates="comments")
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
@@ -32,8 +32,8 @@ class Post(db.Model):
     category: Mapped[str]
     tags: Mapped[str]
     content: Mapped[str]
-    createdAt: Mapped[datetime] = mapped_column()
-    updatedAt: Mapped[datetime] = mapped_column()
+    createdAt: Mapped[datetime] = mapped_column(DATETIME)
+    updatedAt: Mapped[datetime] = mapped_column(DATETIME)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped["User"] = relationship(back_populates="posts")
     comments: Mapped[List["Comment"]] = relationship(back_populates="post")

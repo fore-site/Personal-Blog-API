@@ -44,11 +44,9 @@ class PostRoute(MethodView):
     @blp.arguments(PostSchema)
     @blp.response(201, PostSchema)
     def post(self, post_body):
-        post_body["tags"] = ", ".join(post_body["tags"])
         post_body.update({"createdAt": datetime.now(), "updatedAt": datetime.now()})
         db.session.execute(insert(Post), [post_body])
         db.session.commit()
-        # post_body["tags"] = post_body["tags"].split(",")
         return post_body 
 
 @blp.route("/post/<int:post_id>")
