@@ -5,7 +5,7 @@ class UserSchema(ma.Schema):
     id = ma.fields.Int(dump_only=True)
     username = ma.fields.Str(required=True)
     email = ma.fields.Str(required=True)
-    password = ma.fields.Str(required=True)
+    password = ma.fields.Str(required=True, load_only=True)
     createdAt = ma.fields.DateTime(dump_only=True)
     posts = ma.fields.List(ma.fields.Nested(lambda: PostSchema(only=("id", "title", "content"))), dump_only=True)
     comments = ma.fields.List(ma.fields.Nested(lambda: CommentSchema(only=("content", "post"))), dump_only=True)
