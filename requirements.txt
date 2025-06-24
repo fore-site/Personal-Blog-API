@@ -4,3 +4,4 @@ flask-smorest
 dataclasses
 python-dotenv
 flask-jwt-extended
+werkzeug

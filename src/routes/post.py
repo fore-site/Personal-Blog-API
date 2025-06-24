@@ -27,7 +27,7 @@ class PostRoute(MethodView):
                 elif each_key == "term":
                     value = query_args.get(each_key).lower()
                     result = select(Post).filter(or_(
-                    Post.tags.icontains(value), Post.content.icontains(value), Post.category.contains(value)))
+                    Post.tags.icontains(value), Post.content.icontains(value)))
                 else:
                     result = result.filter(func.lower(getattr(Post, each_key))
                     == query_args.get(each_key).lower())
@@ -45,9 +45,9 @@ class PostRoute(MethodView):
     @blp.response(201, PostSchema)
     def post(self, post_body):
         post_body.update({"createdAt": datetime.now(), "updatedAt": datetime.now()})
-        db.session.execute(insert(Post), [post_body])
+        result = db.session.execute(insert(Post), [post_body])
         db.session.commit()
-        return post_body 
+        return post_body, 201
 
 @blp.route("/post/<int:post_id>")
 class EachPost(MethodView):
@@ -64,7 +64,7 @@ class EachPost(MethodView):
     @blp.response(200, PostPutSchema)
     def put(self, post_body, post_id):
             # CHECK IF post EXISTS
-        post = db.session.execute(select(Post).where(Post.id == post_id)).all()
+        post = db.session.scalars(select(Post).where(Post.id == post_id)).all()
         if not post:
             abort(404, message="Post not found.")
         post_body.update({"id": post_id, "updatedAt": datetime.now()})
@@ -78,7 +78,7 @@ class EachPost(MethodView):
     @blp.response(200, PostUpdateSchema)
     def patch(self, post_body, post_id):
             # CHECK IF post EXISTS
-        post = db.session.execute(select(Post).where(Post.id == post_id)).all()
+        post = db.session.scalars(select(Post).where(Post.id == post_id)).all()
         if not post:
             abort(404, message="Post not found.")
         post_body.update({"id": post_id, "updatedAt": datetime.now()})
@@ -95,7 +95,7 @@ class EachPost(MethodView):
     def delete(self, post_id):
 
         # CHECK IF POST EXISTS
-        post = db.session.execute(select(Post).where(Post.id == post_id)).all()
+        post = db.session.scalars(select(Post).where(Post.id == post_id)).all()
         if not post:
             abort(404, message="Post not found.")
         db.session.execute(

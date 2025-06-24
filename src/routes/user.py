@@ -8,14 +8,8 @@ from src.schemas.schema import UserSchema
 
 blp = Blueprint("user", __name__, description="Operation on User")
 
-@blp.route("/user")
+@blp.route("/register")
 class UserRoute(MethodView):
-    def get(self):
-        all_users = db.session.scalars(select(User)).all()
-        user_schema = UserSchema(many=True)
-        result = user_schema.dump(all_users)
-        return result, 200
-    
     @blp.arguments(UserSchema)
     @blp.response(201, UserSchema)
     def post(self, user_data):
@@ -26,7 +20,7 @@ class UserRoute(MethodView):
 
 @blp.route("/user/<int:user_id>")
 class UserIDRoute(MethodView):
-    def get(self):
+    def get(self, user_id):
         single_user = db.session.execute(select(User).where(User.id == user_id)).all()
         user_schema = UserSchema(many=True)
         result = user_schema.dump(single_user)
