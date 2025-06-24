@@ -10,6 +10,10 @@ class UserSchema(Schema):
     posts = fields.List(fields.Nested(lambda: PostSchema(only=("id", "title", "content"))), dump_only=True)
     comments = fields.List(fields.Nested(lambda: CommentSchema(only=("content", "post"))), dump_only=True)
 
+class UserLoginSchema(Schema):
+    username = fields.Str(required=True, validate=validate.Length(min=4, max=10))
+    password = fields.Str(required=True, validate=validate.Length(min=9, max=20))
+
 class PostSchema(Schema):
     class Meta():
         model = Post
