@@ -5,14 +5,14 @@ from datetime import datetime
 from sqlalchemy import select, update, insert, delete, or_, func
 from src.extensions import db
 from models import Post
-from src.schemas.schema import PostSchema, PostPutSchema, PostUpdateSchema, PostQuerySchema
+from src.schemas.schema import PostSchema, PostUpdateSchema, PostQuerySchema
+from flask_jwt_extended import jwt_required
 
 blp = Blueprint("posts", __name__, description="Operations on Posts")
 
 @blp.route("/post")
 class PostRoute(MethodView):
     @blp.arguments(PostQuerySchema, location="query")
-    # @blp.response(200, PostSchema)
     def get(self, query_args):
         if query_args:
             # MAKE A LIST OF THE KEYS IN THE KEY-VALUE PAIRS OF THE QUERY ARGUMENT
@@ -41,17 +41,17 @@ class PostRoute(MethodView):
         result = schema.dump(all_posts)
         return (result), 200
     
+    @jwt_required
     @blp.arguments(PostSchema)
     @blp.response(201, PostSchema)
     def post(self, post_body):
         post_body.update({"createdAt": datetime.now(), "updatedAt": datetime.now()})
-        result = db.session.execute(insert(Post), [post_body])
+        db.session.execute(insert(Post), [post_body])
         db.session.commit()
         return post_body, 201
 
 @blp.route("/post/<int:post_id>")
 class EachPost(MethodView):
-    # @blp.response(200, PostSchema)
     def get(self, post_id):
         single_post = db.session.scalars(select(Post).where(Post.id == post_id)).all()
         if not single_post:
@@ -60,46 +60,25 @@ class EachPost(MethodView):
         result = post_schema.dump(single_post)
         return result, 200
     
-    @blp.arguments(PostPutSchema)
-    @blp.response(200, PostPutSchema)
-    def put(self, post_body, post_id):
-            # CHECK IF post EXISTS
-        post = db.session.scalars(select(Post).where(Post.id == post_id)).all()
-        if not post:
-            abort(404, message="Post not found.")
-        post_body.update({"id": post_id, "updatedAt": datetime.now()})
-            # CONVERT LIST DATA TYPE TO STRING
-        post_body["tags"] = ", ".join(post_body["tags"])
-        db.session.execute(update(Post),[post_body])
-        db.session.commit()
-        return post_body
-
+    @jwt_required
     @blp.arguments(PostUpdateSchema)
     @blp.response(200, PostUpdateSchema)
     def patch(self, post_body, post_id):
             # CHECK IF post EXISTS
-        post = db.session.scalars(select(Post).where(Post.id == post_id)).all()
+        post = db.session.scalars(select(Post).where(Post.id == post_id)).first()
         if not post:
             abort(404, message="Post not found.")
         post_body.update({"id": post_id, "updatedAt": datetime.now()})
-            # CONVERT LIST DATA TYPE TO STRING
-        if post_body.get("tags"):
-            post_body["tags"] = ", ".join(post_body["tags"])
         db.session.execute(update(Post), [post_body])
         db.session.commit()
-        # DO THIS SO IT DOES NOT BREAK INTO INDIVIDUAL LETTERS WHEN RETURNED
-        post_body["tags"] = post_body["tags"].split(",")
-
         return post_body, 200
 
+    @jwt_required
     def delete(self, post_id):
-
         # CHECK IF POST EXISTS
         post = db.session.scalars(select(Post).where(Post.id == post_id)).all()
         if not post:
             abort(404, message="Post not found.")
-        db.session.execute(
-            delete(Post).where(Post.id == post_id)
-        )
+        db.session.execute(delete(Post).where(Post.id == post_id))
         db.session.commit()
         return "Ok", 204

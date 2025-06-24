@@ -46,12 +46,6 @@ class PostUpdateSchema(Schema):
     title = fields.Str(validate=validate.Length(min=1))
     updatedAt = fields.DateTime(dump_only=True)
 
-class PostPutSchema(Schema):
-    tags = fields.List(fields.Str(required=True))
-    content = fields.Str(required=True, validate=validate.Length(min=1))
-    title = fields.Str(required=True, validate=validate.Length(min=1))
-    updatedAt = fields.DateTime(dump_only=True)
-
 class PostQuerySchema(Schema):
     tags = fields.Str()
     term = fields.Str()

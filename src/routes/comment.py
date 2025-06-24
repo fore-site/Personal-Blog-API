@@ -6,6 +6,7 @@ from sqlalchemy import select, delete, update, insert
 from src.extensions import db
 from models import Comment
 from src.schemas.schema import CommentSchema
+from flask_jwt_extended import jwt_required
 
 blp = Blueprint("comment", __name__, "operations on comment")
 
@@ -24,3 +25,14 @@ class CommentRoute(MethodView):
         db.session.execute(insert(Comment), [comment_data])
         db.session.commit()
         return comment_data, 201
+    
+@blp.route("/comment/<int:comment_id>")
+class CommentIDRoute(MethodView):
+    @jwt_required
+    def delete(self, comment_id):
+        comment = db.session.scalars(select(Comment).where(Comment.id == comment_id)).first()
+        if comment:
+            db.session.execute(delete(Comment).where(Comment.id == comment_id))
+            db.commit()
+            return {"message": "Comment deleted"}, 204
+        abort(404, message="Comment does not exist")

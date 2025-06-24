@@ -6,6 +6,7 @@ from src.extensions import db
 from models import User
 from src.schemas.schema import UserSchema, UserLoginSchema
 from werkzeug import security
+from flask_jwt_extended import create_access_token, jwt_required
 
 blp = Blueprint("user", __name__, description="Operation on User")
 
@@ -19,6 +20,16 @@ class UserRoute(MethodView):
         db.session.commit()
         return user_data
 
+@blp.route("/login")
+class UserLogin(MethodView):
+    @blp.arguments(UserLoginSchema)
+    def post(self, user_data):
+        user = db.session.scalars(select(User).where(User.username == user_data["username"])).first()
+        if user and security.check_password_hash(user.password, user_data["password"]):
+            access_token = create_access_token(identity=user.username)
+            return {"access token": access_token}
+        return {"message": "Invalid username or password"}, 401
+
 @blp.route("/user/<int:user_id>")
 class UserIDRoute(MethodView):
     def get(self, user_id):
@@ -27,6 +38,7 @@ class UserIDRoute(MethodView):
         result = user_schema.dump(single_user)
         return result, 200
 
+    @jwt_required
     def delete(self, user_id):
         user = db.session.execute(select(User).where(User.id == user_id)).all()
         if not user:
@@ -35,14 +47,3 @@ class UserIDRoute(MethodView):
         db.session.commit()
         return "Okay", 204
     
-@blp.route("/login")
-class UserLogin(MethodView):
-    @blp.arguments(UserLoginSchema)
-    def post(self, user_data):
-        user = db.session.scalars(select(User).where(User.username == user_data["username"])).first()
-        if user:
-            check_pwd = security.check_password_hash(user.password, user_data["password"])
-            if check_pwd:
-                return {"message": "Login successful"}, 200
-            return {"message": "Incorrect password"}, 404
-        return {"message": "Username does not exist"}, 404
