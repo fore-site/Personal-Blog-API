@@ -19,6 +19,7 @@ class CommentRoute(MethodView):
         all_comments = comment_schema.dump(result)
         return all_comments, 200
     
+    @jwt_required()
     @blp.arguments(CommentSchema)
     def post(self, comment_data):
         comment_data.update({"postedAt": datetime.now(), "editedAt": datetime.now()})
@@ -28,7 +29,7 @@ class CommentRoute(MethodView):
     
 @blp.route("/comment/<int:comment_id>")
 class CommentIDRoute(MethodView):
-    @jwt_required
+    @jwt_required()
     def delete(self, comment_id):
         comment = db.session.scalars(select(Comment).where(Comment.id == comment_id)).first()
         if comment:

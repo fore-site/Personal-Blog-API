@@ -41,7 +41,7 @@ class PostRoute(MethodView):
         result = schema.dump(all_posts)
         return (result), 200
     
-    @jwt_required
+    @jwt_required()
     @blp.arguments(PostSchema)
     @blp.response(201, PostSchema)
     def post(self, post_body):
@@ -60,7 +60,7 @@ class EachPost(MethodView):
         result = post_schema.dump(single_post)
         return result, 200
     
-    @jwt_required
+    @jwt_required()
     @blp.arguments(PostUpdateSchema)
     @blp.response(200, PostUpdateSchema)
     def patch(self, post_body, post_id):
@@ -73,7 +73,7 @@ class EachPost(MethodView):
         db.session.commit()
         return post_body, 200
 
-    @jwt_required
+    @jwt_required()
     def delete(self, post_id):
         # CHECK IF POST EXISTS
         post = db.session.scalars(select(Post).where(Post.id == post_id)).all()

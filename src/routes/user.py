@@ -38,7 +38,7 @@ class UserIDRoute(MethodView):
         result = user_schema.dump(single_user)
         return result, 200
 
-    @jwt_required
+    @jwt_required()
     def delete(self, user_id):
         user = db.session.execute(select(User).where(User.id == user_id)).all()
         if not user:

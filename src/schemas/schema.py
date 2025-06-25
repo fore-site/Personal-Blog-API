@@ -14,6 +14,10 @@ class UserLoginSchema(Schema):
     username = fields.Str(required=True, validate=validate.Length(min=4, max=10))
     password = fields.Str(required=True, validate=validate.Length(min=9, max=20))
 
+# class UserUpdateSchema(Schema):
+#     username = fields.Str(validate=validate.Length(min=4, max=10))
+#     password = fields.Str(validate=validate.Length(min=9, max=20))
+
 class PostSchema(Schema):
     class Meta():
         model = Post
