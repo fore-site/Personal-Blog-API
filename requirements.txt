@@ -5,3 +5,4 @@ dataclasses
 python-dotenv
 flask-jwt-extended
 werkzeug
+redis

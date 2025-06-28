@@ -1,12 +1,14 @@
+from blocklist import jwt_redis_blocklist, ACCESS_EXPIRES
+from datetime import datetime
+from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import abort, Blueprint
-from datetime import datetime
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt
+from models import User
 from sqlalchemy import select, update, insert, delete
 from src.extensions import db
-from models import User
 from src.schemas.schema import UserSchema, UserLoginSchema
 from werkzeug import security
-from flask_jwt_extended import create_access_token, jwt_required
 
 blp = Blueprint("user", __name__, description="Operation on User")
 
@@ -46,4 +48,11 @@ class UserIDRoute(MethodView):
         db.session.execute(delete(User).where(User.id == user_id))
         db.session.commit()
         return "Okay", 204
-    
+
+@blp.route("/logout")
+class UserLogout(MethodView):
+    @jwt_required()
+    def post(self):
+        jti = get_jwt()["jti"]
+        jwt_redis_blocklist.set(name=jti, ex=ACCESS_EXPIRES)
+        return jsonify({"message": "Successfully logged out"})

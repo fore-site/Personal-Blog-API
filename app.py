@@ -1,15 +1,17 @@
-from flask import Flask
-from flask_smorest import Api
-import os
+from blocklist import jwt_redis_blocklist
+from datetime import timedelta
 from dotenv import load_dotenv
 from src.routes.post import blp as PostBlueprint
 from src.routes.user import blp as UserBlueprint
 from src.routes.comment import blp as CommentBlueprint
 from src.extensions import db
+from flask_smorest import Api
 from flask_jwt_extended import JWTManager
+from flask import Flask
+import os
+import redis
 
 load_dotenv(".flaskenv")
-
 
 # CREATE FLASK APP
 def create_app():
@@ -27,9 +29,15 @@ def create_app():
     db.init_app(app)
 
     jwt = JWTManager(app)
+
+    @jwt.token_in_blocklist_loader
+    def check_token_revoked(jwt_header, jwt_payload):
+        return jwt_payload["jti"] in jwt_redis_blocklist
+    
     api = Api(app)
     with app.app_context():
         db.create_all()
+
 
     import warnings
     warnings.filterwarnings("ignore", message="Multiple schemas resolved to the name ")
@@ -37,7 +45,6 @@ def create_app():
     api.register_blueprint(PostBlueprint)
     api.register_blueprint(UserBlueprint)
     api.register_blueprint(CommentBlueprint)
-
 
     if __name__ == "__main__":
         app.run()
