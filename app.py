@@ -1,5 +1,4 @@
 from blocklist import jwt_redis_blocklist
-from datetime import timedelta
 from dotenv import load_dotenv
 from src.routes.post import blp as PostBlueprint
 from src.routes.user import blp as UserBlueprint

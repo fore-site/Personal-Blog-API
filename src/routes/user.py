@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import abort, Blueprint
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt, get_jwt_identity
 from models import User
 from sqlalchemy import select, update, insert, delete
 from src.extensions import db
@@ -54,5 +54,5 @@ class UserLogout(MethodView):
     @jwt_required()
     def post(self):
         jti = get_jwt()["jti"]
-        jwt_redis_blocklist.set(name=jti, ex=ACCESS_EXPIRES)
+        jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
         return jsonify({"message": "Successfully logged out"})
