@@ -1,10 +1,10 @@
-from marshmallow import fields, Schema, validate
+from marshmallow import fields, Schema, validate, validates
 from models import Post
     
 class UserSchema(Schema):
     id = fields.Int(dump_only=True)
     username = fields.Str(required=True, validate=validate.Length(min=4, max=10))
-    email = fields.Str(required=True, validate=validate.Email(error="Enter a valid email address"))
+    email = fields.Email(required=True, validate=validate.Email(error="Enter a valid email address"))
     password = fields.Str(required=True, load_only=True, validate=validate.Length(min=9, max=20))
     createdAt = fields.DateTime(dump_only=True)
     posts = fields.List(fields.Nested(lambda: PostSchema(only=("id", "title", "content"))), dump_only=True)
@@ -14,9 +14,12 @@ class UserLoginSchema(Schema):
     username = fields.Str(required=True, validate=validate.Length(min=4, max=10))
     password = fields.Str(required=True, validate=validate.Length(min=9, max=20))
 
-# class UserUpdateSchema(Schema):
-#     username = fields.Str(validate=validate.Length(min=4, max=10))
-#     password = fields.Str(validate=validate.Length(min=9, max=20))
+class UserUpdateSchema(Schema):
+    username = fields.Str(validate=validate.Length(min=4, max=10))
+    current_password = fields.Str(load_only=True, validate=validate.Length(min=9, max=20))
+    new_password = fields.Str(load_only=True, validate=validate.Length(min=9, max=20))
+    confirm_new_password = fields.Str(load_only=True, validate=validate.Length(min=9, max=20))
+    email = fields.Email(validate=validate.Email(error="Enter a valid email address"))
 
 class PostSchema(Schema):
     class Meta():
