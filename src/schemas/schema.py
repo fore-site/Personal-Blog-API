@@ -1,4 +1,4 @@
-from marshmallow import fields, Schema, validate, validates
+from marshmallow import fields, Schema, validate, validates_schema, ValidationError
 from models import Post
     
 class UserSchema(Schema):
@@ -20,6 +20,13 @@ class UserUpdateSchema(Schema):
     new_password = fields.Str(load_only=True, validate=validate.Length(min=9, max=20))
     confirm_new_password = fields.Str(load_only=True, validate=validate.Length(min=9, max=20))
     email = fields.Email(validate=validate.Email(error="Enter a valid email address"))
+    
+    @validates_schema
+    def validate_password(self, data, **kwargs):
+        if data.get("new_password") and not data.get("current_password"):
+            raise ValidationError(message="Must enter old password.")
+        if data.get("email") and not data.get("current_password"):
+            raise  ValidationError(message="Must enter current password.")
 
 class PostSchema(Schema):
     class Meta():

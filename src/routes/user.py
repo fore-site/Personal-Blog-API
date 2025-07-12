@@ -36,32 +36,31 @@ class UserLogin(MethodView):
 @blp.route("/user/<int:user_id>")
 class UserIDRoute(MethodView):
     def get(self, user_id):
-        single_user = db.session.execute(select(User).where(User.id == user_id)).all()
+        single_user = db.session.scalars(select(User).where(User.id == user_id)).all()
         user_schema = UserSchema(many=True)
         result = user_schema.dump(single_user)
         return result, 200
 
     @jwt_required()
     @blp.arguments(UserUpdateSchema)
-    @blp.response(200, UserUpdateSchema)
     def patch(self, user_body, user_id):
         user = db.session.scalars(select(User).where(User.id == user_id)).first()
-        if user_body["username"]:
-            if user_body["current_password"]:
+        if user_body.get("username"):
+            if user_body.get("current_password"):
                 if security.check_password_hash(user.password, user_body["current_password"]):
                     pass
                 abort(401, message="Current password is incorrect")
             db.session.execute(update(User), [{"id": user_id, "username": user_body["username"]}])
-            db.session.commit()
-        if user_body["new_password"] or user_body["email"]:
-            if security.check_password_hash(user.password, user_body["current_password"]):
-                if user_body["new_password"]:
+            # db.session.commit()
+            return {"message": "Credentials successfully updated."}, 200
+        if user_body.get("new_password") or user_body.get("email"):
+            if security.check_password_hash(user.password, user_body.get("current_password")):
+                if user_body.get("new_password"):
                     db.session.execute(update(User), [{"id": user_id, "password": security.generate_password_hash(user_body["new_password"], "scrypt", 8)}])
-                if user_body["email"]:
+                if user_body.get("email"):
                     db.session.execute(update(User), [{"id": user_id, "email": user_body["email"]}])
                 db.session.commit()
             abort (401, message="Current password is incorrect.")
-        return {"message": "Credentials successfully updated."}, 200
 
     @jwt_required()
     def delete(self, user_id):
