@@ -49,18 +49,23 @@ class UserIDRoute(MethodView):
             if user_body.get("current_password"):
                 if security.check_password_hash(user.password, user_body["current_password"]):
                     pass
-                abort(401, message="Current password is incorrect")
+                abort(401, message="Current password is incorrect.")
             db.session.execute(update(User), [{"id": user_id, "username": user_body["username"]}])
-            # db.session.commit()
+            db.session.commit()
             return {"message": "Credentials successfully updated."}, 200
         if user_body.get("new_password") or user_body.get("email"):
             if security.check_password_hash(user.password, user_body.get("current_password")):
+                credential = ""
                 if user_body.get("new_password"):
+                    credential = "password"
                     db.session.execute(update(User), [{"id": user_id, "password": security.generate_password_hash(user_body["new_password"], "scrypt", 8)}])
                 if user_body.get("email"):
+                    credential = "email"
                     db.session.execute(update(User), [{"id": user_id, "email": user_body["email"]}])
                 db.session.commit()
-            abort (401, message="Current password is incorrect.")
+                return {"message": f"{credential} successfully updated"}, 200
+            else:
+                abort(401, message="Current password is incorrect.")
 
     @jwt_required()
     def delete(self, user_id):
@@ -73,7 +78,7 @@ class UserIDRoute(MethodView):
 
 @blp.route("/logout")
 class UserLogout(MethodView):
-    @jwt_required()
+    @jwt_required(verify_type=False)
     def post(self):
         jti = get_jwt()["jti"]
         jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
