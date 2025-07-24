@@ -7,7 +7,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 from models import User
 from sqlalchemy import select, update, insert, delete
 from src.extensions import db
-from src.schemas.schema import UserSchema, UserLoginSchema, UserUpdateSchema
+from src.schemas.schema import UserSchema, UserLoginSchema, UserUpdateSchema, UserPathSchema
 from werkzeug import security
 
 blp = Blueprint("user", __name__, description="Operation on User")
@@ -33,24 +33,31 @@ class UserLogin(MethodView):
             return {"access_token": access_token, "refresh_token": refresh_token}, 200
         abort(401, message="Invalid username or password")
 
-@blp.route("/user/<int:user_id>")
-class UserIDRoute(MethodView):
-    def get(self, user_id):
-        single_user = db.session.scalars(select(User).where(User.id == user_id)).all()
-        user_schema = UserSchema(many=True)
-        result = user_schema.dump(single_user)
-        return result, 200
-
+@blp.route("/user/<username>")
+class FindUserRoute(MethodView):
+    @blp.response(200, UserSchema(many=True))
+    def get(self, username):
+        print(username)
+        if username:
+            searched_user = db.session.scalars(select(User).where(User.username == username)).all()
+            if searched_user:
+                return searched_user
+            else:
+                abort(404, message="User not found")
+        
     @jwt_required()
     @blp.arguments(UserUpdateSchema)
-    def patch(self, user_body, user_id):
-        user = db.session.scalars(select(User).where(User.id == user_id)).first()
+    def patch(self, user_body, username):
+        current_user = get_jwt_identity()
+        if current_user != username:
+            abort(401, message=f"Not logged in as {username}")
+        user = db.session.scalars(select(User).where(User.username == current_user)).first()
         if user_body.get("username"):
             if user_body.get("current_password"):
                 if security.check_password_hash(user.password, user_body["current_password"]):
                     pass
                 abort(401, message="Current password is incorrect.")
-            db.session.execute(update(User), [{"id": user_id, "username": user_body["username"]}])
+            db.session.execute(update(User), [{"id": user.id, "username": user_body["username"]}])
             db.session.commit()
             return {"message": "Credentials successfully updated."}, 200
         if user_body.get("new_password") or user_body.get("email"):
@@ -58,10 +65,10 @@ class UserIDRoute(MethodView):
                 credential = ""
                 if user_body.get("new_password"):
                     credential = "password"
-                    db.session.execute(update(User), [{"id": user_id, "password": security.generate_password_hash(user_body["new_password"], "scrypt", 8)}])
+                    db.session.execute(update(User), [{"id": user.id, "password": security.generate_password_hash(user_body["new_password"], "scrypt", 8)}])
                 if user_body.get("email"):
                     credential = "email"
-                    db.session.execute(update(User), [{"id": user_id, "email": user_body["email"]}])
+                    db.session.execute(update(User), [{"id": user.id, "email": user_body["email"]}])
                 db.session.commit()
                 return {"message": f"{credential} successfully updated"}, 200
             else:
