@@ -8,7 +8,6 @@ from flask_smorest import Api
 from flask_jwt_extended import JWTManager
 from flask import Flask
 import os
-import redis
 
 load_dotenv(".flaskenv")
 
