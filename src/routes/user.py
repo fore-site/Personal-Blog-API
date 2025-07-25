@@ -38,8 +38,8 @@ class UserLogin(MethodView):
     def post(self, user_data):
         user = db.session.scalars(select(User).where(User.username == user_data["username"])).first()
         if user and security.check_password_hash(user.password, user_data["password"]):
-            access_token = create_access_token(identity=user.id)
-            refresh_token = create_refresh_token(identity=user.id)
+            access_token = create_access_token(identity=str(user.id))
+            refresh_token = create_refresh_token(identity=str(user.id))
             return {"access_token": access_token, "refresh_token": refresh_token}, 200
         abort(401, message="Invalid username or password")
 
@@ -59,14 +59,14 @@ class CurrentUserRoute(MethodView):
     @blp.response(200, UserSchema)
     def get(self):
         current_user = get_jwt_identity()
-        user = db.session.scalars(select(User).where(User.id == current_user)).first()
+        user = db.session.scalars(select(User).where(User.id == int(current_user))).first()
         return user
     
     @jwt_required()
     @blp.arguments(UserUpdateSchema)
     def patch(self, user_body):
         current_user = get_jwt_identity()
-        user = db.session.scalars(select(User).where(User.id == current_user)).first()
+        user = db.session.scalars(select(User).where(User.id == int(current_user))).first()
         if user_body.get("username"):
             if user_body.get("current_password"):
                 if security.check_password_hash(user.password, user_body["current_password"]):
@@ -102,7 +102,7 @@ class CurrentUserRoute(MethodView):
     @jwt_required(verify_type=False)
     def delete(self):
         current_user = get_jwt_identity()
-        db.session.execute(delete(User).where(User.id == current_user))
+        db.session.execute(delete(User).where(User.id == int(current_user)))
         db.session.commit()
 
         token = get_jwt()
