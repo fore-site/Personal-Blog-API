@@ -6,11 +6,11 @@ from sqlalchemy import select, update, insert, delete, or_, func
 from src.extensions import db
 from models import Post
 from src.schemas.schema import PostSchema, PostUpdateSchema, PostQuerySchema
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 blp = Blueprint("posts", __name__, description="Operations on Posts")
 
-@blp.route("/post")
+@blp.route("/posts")
 class PostRoute(MethodView):
     @blp.arguments(PostQuerySchema, location="query")
     def get(self, query_args):
@@ -45,18 +45,19 @@ class PostRoute(MethodView):
     @blp.arguments(PostSchema)
     @blp.response(201, PostSchema)
     def post(self, post_body):
-        post_body.update({"createdAt": datetime.now(), "updatedAt": datetime.now()})
+        post_body.update({"createdAt": datetime.now(), "updatedAt": datetime.now(), "user_id": int(get_jwt_identity())})
         db.session.execute(insert(Post), [post_body])
         db.session.commit()
         return post_body, 201
 
-@blp.route("/post/<int:post_id>")
+@blp.route("/posts/<int:post_id>")
 class EachPost(MethodView):
     def get(self, post_id):
-        single_post = db.session.scalars(select(Post).where(Post.id == post_id)).all()
+        single_post = db.session.scalars(select(Post).where(Post.id == post_id)).first()
         if not single_post:
             abort(404, message="Post not found.")
-        post_schema = PostSchema(many=True)
+        else:
+            post_schema = PostSchema(many=True)
         result = post_schema.dump(single_post)
         return result, 200
     

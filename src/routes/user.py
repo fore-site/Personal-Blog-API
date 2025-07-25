@@ -43,17 +43,24 @@ class UserLogin(MethodView):
             return {"access_token": access_token, "refresh_token": refresh_token}, 200
         abort(401, message="Invalid username or password")
 
-@blp.route("/user/<username>")
+@blp.route("/users")
+class AllUsersRoute(MethodView):
+    @blp.response(200, UserSchema(many=True))
+    def get(self):
+        users = db.session.scalars(select(User)).all()
+        return users
+
+@blp.route("/users/<int:id>")
 class FindUserRoute(MethodView):
     @blp.response(200, UserSchema(many=True))
-    def get(self, username):
-        searched_user = db.session.scalars(select(User).where(User.username == username)).all()
+    def get(self, id):
+        searched_user = db.session.scalars(select(User).where(User.id == id)).all()
         if searched_user:
             return searched_user
         else:
             abort(404, message="User not found")
 
-@blp.route("/user/me")
+@blp.route("/profile")
 class CurrentUserRoute(MethodView):
     @jwt_required()
     @blp.response(200, UserSchema)
