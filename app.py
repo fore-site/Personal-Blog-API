@@ -1,9 +1,7 @@
 from blocklist import jwt_redis_blocklist
-from dotenv import load_dotenv
 from controllers.routes.post import blp as PostBlueprint
 from controllers.routes.user import blp as UserBlueprint
 from controllers.routes.comment import blp as CommentBlueprint
-from flask_migrate import Migrate
 from extensions import db
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
@@ -15,7 +13,6 @@ def create_app():
     app.config.from_pyfile("config.py")
 
     db.init_app(app)
-    migrate = Migrate(app, db)
 
     jwt = JWTManager(app)
 
