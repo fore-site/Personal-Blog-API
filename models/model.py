@@ -29,7 +29,6 @@ class Post(db.Model):
     __tablename__ = "posts"
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str]
-    tags: Mapped[str]
     content: Mapped[str]
     createdAt: Mapped[datetime] = mapped_column(DATETIME)
     updatedAt: Mapped[datetime] = mapped_column(DATETIME)

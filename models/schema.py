@@ -35,7 +35,6 @@ class PostSchema(Schema):
 
     id = fields.Int(dump_only=True)
     content = fields.Str(required=True, validate=validate.Length(min=1))
-    tags = fields.Str(required=True)
     title = fields.Str(required=True, validate=validate.Length(min=1))
     createdAt = fields.DateTime(dump_only=True)
     updatedAt = fields.DateTime(dump_only=True)
@@ -55,11 +54,9 @@ class CommentSchema(Schema):
     user = fields.Nested(UserSchema, only=("id", "username"), dump_only=True)
 
 class PostUpdateSchema(Schema):
-    tags = fields.Str()
     content = fields.Str(validate=validate.Length(min=1))
     title = fields.Str(validate=validate.Length(min=1))
     updatedAt = fields.DateTime(dump_only=True)
 
 class PostQuerySchema(Schema):
-    tags = fields.Str()
     term = fields.Str()
