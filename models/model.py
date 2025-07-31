@@ -1,4 +1,4 @@
-from src.extensions import db
+from extensions import db
 from sqlalchemy import ForeignKey, func, select, DATETIME
 from sqlalchemy.orm import mapped_column, relationship, Mapped, column_property
 from datetime import datetime

@@ -1,11 +1,10 @@
 from flask.views import MethodView
-from flask import jsonify
 from flask_smorest import abort, Blueprint
 from datetime import datetime
 from sqlalchemy import select, update, insert, delete, or_, func
-from src.extensions import db
+from extensions import db
 from models import Post
-from src.schemas.schema import PostSchema, PostUpdateSchema, PostQuerySchema
+from models.schema import PostSchema, PostUpdateSchema, PostQuerySchema
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 blp = Blueprint("posts", __name__, description="Operations on Posts")

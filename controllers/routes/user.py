@@ -8,8 +8,8 @@ from models import User
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy import select, update, delete
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from src.extensions import db
-from src.schemas.schema import UserSchema, UserLoginSchema, UserUpdateSchema, UserPathSchema
+from extensions import db
+from models.schema import UserSchema, UserLoginSchema, UserUpdateSchema
 from werkzeug import security
 
 blp = Blueprint("user", __name__, description="Operation on User")

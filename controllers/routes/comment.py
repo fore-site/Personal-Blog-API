@@ -3,9 +3,9 @@ from flask import jsonify
 from flask_smorest import Blueprint, abort
 from datetime import datetime
 from sqlalchemy import select, delete, update, insert
-from src.extensions import db
+from extensions import db
 from models import Comment, Post
-from src.schemas.schema import CommentSchema
+from models.schema import CommentSchema
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 blp = Blueprint("comment", __name__, "operations on comment")
@@ -22,8 +22,6 @@ class CommentRoute(MethodView):
     @blp.response(200, CommentSchema(many=True))
     def get(self, post_id):
         result = db.session.scalars(select(Comment).where(Comment.post_id == post_id)).all()
-        # comment_schema = CommentSchema(many=True)
-        # all_comments = comment_schema.dump(result)
         return result
     
     @jwt_required()

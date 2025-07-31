@@ -28,9 +28,6 @@ class UserUpdateSchema(Schema):
         if data.get("email") and not data.get("current_password"):
             raise  ValidationError(message="Must enter current password.")
 
-class UserPathSchema(Schema):
-    username = fields.Str()
-    
 class PostSchema(Schema):
     class Meta():
         model = Post
