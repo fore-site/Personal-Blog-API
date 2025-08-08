@@ -9,6 +9,7 @@ class UserSchema(Schema):
     createdAt = fields.DateTime(dump_only=True)
     posts = fields.List(fields.Nested(lambda: PostSchema(only=("id", "title", "content"))), dump_only=True)
     comments = fields.List(fields.Nested(lambda: CommentSchema(only=("content", "post"))), dump_only=True)
+    roles = fields.Str(dump_only=True)
 
 class UserLoginSchema(Schema):
     username = fields.Str(required=True, validate=validate.Length(min=4, max=10))
@@ -42,6 +43,7 @@ class PostSchema(Schema):
     user = fields.Nested(UserSchema, only=("id","username"), dump_only=True)
     comments = fields.List(fields.Nested(lambda: CommentSchema(only=("content", "user"))), dump_only=True)
     comment_count = fields.Int(dump_only=True)
+    tags = fields.List(fields.Nested(lambda: TagSchema(only=("id", "name"))), dump_only=True)
 
 class CommentSchema(Schema):
     id = fields.Int(dump_only=True)
@@ -60,3 +62,8 @@ class PostUpdateSchema(Schema):
 
 class PostQuerySchema(Schema):
     term = fields.Str()
+
+class TagSchema(Schema):
+    id = fields.Int(dump_only=True)
+    name = fields.Str()
+    posts = fields.List(fields.Nested(lambda: PostSchema(only=("id", "title", "content"))), dump_only=True)

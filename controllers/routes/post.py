@@ -1,7 +1,7 @@
 from flask.views import MethodView
 from flask_smorest import abort, Blueprint
 from datetime import datetime
-from sqlalchemy import select, update, insert, delete, or_, func
+from sqlalchemy import desc, select, update, insert, delete, or_, func
 from extensions import db
 from models import Post
 from models.schema import PostSchema, PostUpdateSchema, PostQuerySchema
@@ -26,7 +26,7 @@ class PostRoute(MethodView):
                 elif each_key == "term":
                     value = query_args.get(each_key).lower()
                     result = select(Post).filter(or_(
-                    Post.tags.icontains(value), Post.content.icontains(value)))
+                    Post.title.icontains(value), Post.content.icontains(value)))
                 else:
                     result = result.filter(func.lower(getattr(Post, each_key))
                     == query_args.get(each_key).lower())
@@ -35,7 +35,7 @@ class PostRoute(MethodView):
                 return result, 200
             else:
                 abort(404, message="Post not found.")
-        all_posts = db.session.scalars(select(Post)).all()
+        all_posts = db.session.scalars(select(Post)).order_by(desc(Post.createdAt)).all()
         schema = PostSchema(many=True)
         result = schema.dump(all_posts)
         return (result), 200

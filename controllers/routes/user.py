@@ -1,13 +1,13 @@
 from blocklist import jwt_redis_blocklist, ACCESS_EXPIRES
+from controllers.permissions import user_is_active
 from datetime import datetime
 from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import abort, Blueprint
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt, get_jwt_identity, get_jti
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt, get_jwt_identity
 from models import User
-from sqlalchemy.dialects.sqlite import insert
-from sqlalchemy import select, update, delete
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy import insert, select, update, delete
+from sqlalchemy.exc import IntegrityError
 from extensions import db
 from models.schema import UserSchema, UserLoginSchema, UserUpdateSchema
 from werkzeug import security
@@ -20,15 +20,17 @@ class UserRoute(MethodView):
     @blp.response(201, UserSchema)
     def post(self, user_data):    
         user_data.update({"createdAt": datetime.now(), "password": security.generate_password_hash(user_data["password"], "scrypt", 8)})
+        if user_data["id"] == 1:
+            user_data["role"] = "admin"
         try:
             db.session.execute(insert(User).values(user_data))
         except IntegrityError as e:
             db.session.rollback()
             error = str(e.__dict__["orig"])
             if "users.email" in error:
-                abort(403, message="email already exists.")
+                abort(409, message="email already exists.")
             else:
-                abort(403, message="username already existss")
+                abort(409, message="username already existss")
         db.session.commit()
         return user_data
 
@@ -38,17 +40,14 @@ class UserLogin(MethodView):
     def post(self, user_data):
         user = db.session.scalars(select(User).where(User.username == user_data["username"])).first()
         if user and security.check_password_hash(user.password, user_data["password"]):
-            access_token = create_access_token(identity=str(user.id))
-            refresh_token = create_refresh_token(identity=str(user.id))
-            return {"access_token": access_token, "refresh_token": refresh_token}, 200
+            if not user.is_active:
+                abort(403, message="Account deactivated.")
+            else:
+                access_token = create_access_token(identity=str(user.id))
+                refresh_token = create_refresh_token(identity=str(user.id))
+                return {"access_token": access_token, "refresh_token": refresh_token}, 200
         abort(401, message="Invalid username or password")
 
-@blp.route("/users")
-class AllUsersRoute(MethodView):
-    @blp.response(200, UserSchema(many=True))
-    def get(self):
-        users = db.session.scalars(select(User)).all()
-        return users
 
 @blp.route("/users/<int:id>")
 class FindUserRoute(MethodView):
@@ -62,6 +61,7 @@ class FindUserRoute(MethodView):
 
 @blp.route("/profile")
 class CurrentUserRoute(MethodView):
+    @user_is_active
     @jwt_required()
     @blp.response(200, UserSchema)
     def get(self):
@@ -69,6 +69,7 @@ class CurrentUserRoute(MethodView):
         user = db.session.scalars(select(User).where(User.id == int(current_user))).first()
         return user
     
+    @user_is_active
     @jwt_required()
     @blp.arguments(UserUpdateSchema)
     def patch(self, user_body):
@@ -84,7 +85,7 @@ class CurrentUserRoute(MethodView):
                 db.session.execute(update(User), [{"id": user.id, "username": user_body["username"]}])
             except IntegrityError as e:
                 db.session.rollback()
-                abort(403, message=("Username already exists"))
+                abort(409, message=("Username already exists"))
             else:
                 db.session.commit()
                 return {"message": "Credentials successfully updated."}, 200
@@ -100,12 +101,13 @@ class CurrentUserRoute(MethodView):
                         db.session.execute(update(User), [{"id": user.id, "email": user_body["email"]}])
                     except IntegrityError as e:
                         db.session.rollback()
-                        abort(403, message="email already exists.")
+                        abort(409, message="email already exists.")
                 db.session.commit()
                 return {"message": f"{credential} successfully updated"}, 200
             else:
                 abort(401, message="Current password is incorrect.")
 
+    @user_is_active
     @jwt_required(verify_type=False)
     def delete(self):
         current_user = get_jwt_identity()
@@ -120,6 +122,7 @@ class CurrentUserRoute(MethodView):
 
 @blp.route("/logout")
 class UserLogout(MethodView):
+    @user_is_active
     @jwt_required(verify_type=False)
     def post(self):
         token = get_jwt()
@@ -130,6 +133,7 @@ class UserLogout(MethodView):
     
 @blp.route("/refresh")
 class RefreshToken(MethodView):
+    @user_is_active
     @jwt_required(refresh=True)
     def post(self):
         access_token = create_access_token(identity=get_jwt_identity())

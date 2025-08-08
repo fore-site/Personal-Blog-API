@@ -13,6 +13,8 @@ class User(db.Model):
     createdAt: Mapped[datetime] = mapped_column(DATETIME)
     posts: Mapped[List["Post"]] = relationship(back_populates="user")
     comments: Mapped[List["Comment"]] = relationship(back_populates="user")
+    role: Mapped[str] = mapped_column(default="member")
+    is_active: Mapped[bool] = mapped_column(default=True)
 
 class Comment(db.Model):
     __tablename__ = "comments"
@@ -28,11 +30,12 @@ class Comment(db.Model):
 class Post(db.Model):
     __tablename__ = "posts"
     id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str]
     content: Mapped[str]
+    title: Mapped[str]
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     createdAt: Mapped[datetime] = mapped_column(DATETIME)
     updatedAt: Mapped[datetime] = mapped_column(DATETIME)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    tags: Mapped[List["Tag"]] = relationship(back_populates="posts", secondary="posts_tags")
     user: Mapped["User"] = relationship(back_populates="posts")
     comments: Mapped[List["Comment"]] = relationship(back_populates="post")
     comment_count: Mapped[int] = column_property(
@@ -41,3 +44,10 @@ class Post(db.Model):
         .correlate_except(Comment)
         .scalar_subquery()
     )
+
+class Tag(db.Model):
+    __tablename__ = "tags"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    posts: Mapped[List["Post"]] = relationship(back_populates="tags", secondary="posts_tags")

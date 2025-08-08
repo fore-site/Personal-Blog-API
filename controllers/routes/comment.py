@@ -28,7 +28,7 @@ class CommentRoute(MethodView):
     @blp.arguments(CommentSchema)
     @blp.response(201, CommentSchema)
     def post(self, comment_data, post_id):
-        post = db.session.scalars(select(Post).where(Post.id == post_id)).first()
+        post = select(Post).where(Post.id == post_id)
         if post:
             comment_data.update({"postedAt": datetime.now(), "editedAt": datetime.now(), "post_id": post_id,
                                  "user_id": int(get_jwt_identity())})
@@ -42,12 +42,12 @@ class CommentRoute(MethodView):
 class CommentIDRoute(MethodView):
     @blp.response(200, CommentSchema)
     def get(self, post_id, comment_id):
-        comment = db.session.scalars(select(Comment).where(Comment.id == comment_id)).first()
+        comment = db.session.scalars(select(Comment).where(Comment.id == comment_id, Comment.post_id == post_id)).first()
         return comment
 
     @jwt_required()
     def delete(self, post_id, comment_id):
-        comment = db.session.scalars(select(Comment).where(Comment.id == comment_id)).first()
+        comment = select(Comment).where(Comment.id == comment_id, Comment.post_id == post_id)
         if comment:
             db.session.execute(delete(Comment).where(Comment.id == comment_id))
             db.commit()
