@@ -3,6 +3,7 @@ from controllers.routes.post import blp as PostBlueprint
 from controllers.routes.user import blp as UserBlueprint
 from controllers.routes.comment import blp as CommentBlueprint
 from controllers.routes.admin import blp as AdminBlueprint
+from controllers.routes.tag import blp as TagBlueprint
 from extensions import db
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
@@ -32,6 +33,7 @@ def create_app():
     api.register_blueprint(UserBlueprint)
     api.register_blueprint(CommentBlueprint)
     api.register_blueprint(AdminBlueprint)
+    api.register_blueprint(TagBlueprint)
 
     if __name__ == "__main__":
         app.run()

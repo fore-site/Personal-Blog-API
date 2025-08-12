@@ -49,5 +49,5 @@ class Tag(db.Model):
     __tablename__ = "tags"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(unique=True)
     posts: Mapped[List["Post"]] = relationship(back_populates="tags", secondary="posts_tags")

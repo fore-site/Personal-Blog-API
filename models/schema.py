@@ -8,7 +8,7 @@ class UserSchema(Schema):
     password = fields.Str(required=True, load_only=True, validate=validate.Length(min=9, max=20))
     createdAt = fields.DateTime(dump_only=True)
     posts = fields.List(fields.Nested(lambda: PostSchema(only=("id", "title", "content"))), dump_only=True)
-    comments = fields.List(fields.Nested(lambda: CommentSchema(only=("content", "post"))), dump_only=True)
+    comments = fields.List(fields.Nested(lambda: CommentSchema(only=("id", "content", "post"))), dump_only=True)
     roles = fields.Str(dump_only=True)
 
 class UserLoginSchema(Schema):
@@ -40,8 +40,8 @@ class PostSchema(Schema):
     createdAt = fields.DateTime(dump_only=True)
     updatedAt = fields.DateTime(dump_only=True)
     user_id = fields.Int(dump_only=True)
-    user = fields.Nested(UserSchema, only=("id","username"), dump_only=True)
-    comments = fields.List(fields.Nested(lambda: CommentSchema(only=("content", "user"))), dump_only=True)
+    user = fields.Nested(UserSchema, only=("id", "username"), dump_only=True)
+    comments = fields.List(fields.Nested(lambda: CommentSchema(only=("id", "content", "user"))), dump_only=True)
     comment_count = fields.Int(dump_only=True)
     tags = fields.List(fields.Nested(lambda: TagSchema(only=("id", "name"))), dump_only=True)
 
