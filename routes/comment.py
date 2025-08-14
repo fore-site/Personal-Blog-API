@@ -1,9 +1,8 @@
 from flask.views import MethodView
-from flask import jsonify
 from flask_smorest import Blueprint, abort
 from datetime import datetime
-from sqlalchemy import select, delete, update, insert
-from extensions import db
+from sqlalchemy import select, delete, insert
+from config.extensions import db
 from models import Comment, Post
 from models.schema import CommentSchema
 from flask_jwt_extended import jwt_required, get_jwt_identity

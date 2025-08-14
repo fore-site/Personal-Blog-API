@@ -1,4 +1,4 @@
-from extensions import db
+from config.extensions import db
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped
 

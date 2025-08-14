@@ -1,11 +1,11 @@
-from blocklist import jwt_redis_blocklist, ACCESS_EXPIRES
-from utils import admin_only, user_is_active
+from utils.blocklist import jwt_redis_blocklist, ACCESS_EXPIRES
+from middlewares.authMiddleware import admin_only, user_is_active
 from flask import jsonify
 from flask_smorest import abort, Blueprint
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required
 from models.schema import UserSchema
-from extensions import db
+from config.extensions import db
 from sqlalchemy import select, delete, update, insert
 from models import User, Post, Comment, Tag
 from models.schema import TagSchema

@@ -1,12 +1,11 @@
 from flask.views import MethodView
 from flask_smorest import abort, Blueprint
-from datetime import datetime
-from sqlalchemy import select, update, insert, delete, or_, func
-from extensions import db
+from sqlalchemy import select
+from config.extensions import db
 from models import Tag
 from models.schema import TagSchema
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from utils import admin_only, user_is_active
+from flask_jwt_extended import jwt_required
+from middlewares.authMiddleware import user_is_active
 
 blp = Blueprint("tags", __name__, description="operation on tags")
 

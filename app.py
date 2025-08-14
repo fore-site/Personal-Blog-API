@@ -1,10 +1,10 @@
-from blocklist import jwt_redis_blocklist
-from controllers.routes.post import blp as PostBlueprint
-from controllers.routes.user import blp as UserBlueprint
-from controllers.routes.comment import blp as CommentBlueprint
-from controllers.routes.admin import blp as AdminBlueprint
-from controllers.routes.tag import blp as TagBlueprint
-from extensions import db
+from utils.blocklist import jwt_redis_blocklist
+from routes.post import blp as PostBlueprint
+from routes.user import blp as UserBlueprint
+from routes.comment import blp as CommentBlueprint
+from routes.admin import blp as AdminBlueprint
+from routes.tag import blp as TagBlueprint
+from config.extensions import db
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
 from flask import Flask
@@ -12,7 +12,7 @@ from flask import Flask
 # CREATE FLASK APP
 def create_app():
     app = Flask(__name__)
-    app.config.from_pyfile("config.py")
+    app.config.from_pyfile("config/config.py")
 
     db.init_app(app)
 

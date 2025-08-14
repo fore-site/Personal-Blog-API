@@ -1,5 +1,5 @@
-from blocklist import jwt_redis_blocklist, ACCESS_EXPIRES
-from controllers.permissions import user_is_active
+from utils.blocklist import jwt_redis_blocklist, ACCESS_EXPIRES
+from middlewares.authMiddleware import user_is_active
 from datetime import datetime
 from flask import jsonify
 from flask.views import MethodView
@@ -8,7 +8,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 from models import User
 from sqlalchemy import insert, select, update, delete
 from sqlalchemy.exc import IntegrityError
-from extensions import db
+from config.extensions import db
 from models.schema import UserSchema, UserLoginSchema, UserUpdateSchema
 from werkzeug import security
 
