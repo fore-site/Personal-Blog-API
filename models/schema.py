@@ -9,7 +9,7 @@ class UserSchema(Schema):
     createdAt = fields.DateTime(dump_only=True)
     posts = fields.List(fields.Nested(lambda: PostSchema(only=("id", "title", "content"))), dump_only=True)
     comments = fields.List(fields.Nested(lambda: CommentSchema(only=("id", "content", "post"))), dump_only=True)
-    roles = fields.Str(dump_only=True)
+    role = fields.Str(dump_only=True)
     status = fields.Str(dump_only=True)
 
 class UserLoginSchema(Schema):

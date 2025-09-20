@@ -38,9 +38,12 @@ class UserLogin(MethodView):
     def post(self, user_data):
         user = db.session.scalars(select(User).where(User.username == user_data["username"])).first()
         if user and security.check_password_hash(user.password, user_data["password"]):
-            if not user.is_active:
-                abort(403, message="Account deactivated.")
+            if user.status == "disabled":
+                abort(403, message="Account suspended.")
             else:
+                if user.status == "inactive":
+                    db.session.execute(update(User),[{"id": user.id, "status": "active"}])
+                    db.session.commit()
                 access_token = create_access_token(identity=str(user.id))
                 refresh_token = create_refresh_token(identity=str(user.id))
                 return {"access_token": access_token, "refresh_token": refresh_token}, 200

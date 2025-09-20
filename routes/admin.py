@@ -22,7 +22,7 @@ class AllUsersRoute(MethodView):
         users = db.session.scalars(select(User)).all()
         return users
 
-@blp.route("/admin/users/<int:user_id>")
+@blp.route("/admin/users/<int:user_id>/suspend")
 class AdminUserRoute(MethodView):
     @user_is_active
     @jwt_required(verify_type=False)
@@ -37,6 +37,22 @@ class AdminUserRoute(MethodView):
             db.session.execute(update(User), [{"id": user_id, "status": "disabled"}])
             db.session.commit()
             return jsonify({"message": "User successfully deactivated."}), 202
+        
+@blp.route("/admin/users/<int:user_id>/restore")
+class AdminRestoreUser(MethodView):
+    @jwt_required()
+    @user_is_active
+    @admin_only
+    def patch(self, user_id):
+        user = select(User).where(User.id == user_id)
+        if not user:
+            abort(404, message="User not found")
+        elif user.status == "active":
+            abort(409, message="Account already restored")
+        else:
+            db.session.execute(User, [{"id": user_id, "status": "active"}])
+            db.session.commit()
+            return jsonify({"message": "User successfully restored"}), 200
     
 @blp.route("/admin/posts/<int:post_id>")
 class AdminPostRoute(MethodView):
