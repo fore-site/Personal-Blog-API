@@ -3,13 +3,6 @@ from sqlalchemy import ForeignKey, func, select, DATETIME
 from sqlalchemy.orm import mapped_column, relationship, Mapped, column_property
 from datetime import datetime
 from typing import List
-# from utils.utils import default_role
-
-# def default_role(context):
-#     if context.get_current_parameters()["id"] == 1:
-#         return "admin"
-#     else:
-#         return "member"
 
 class User(db.Model):
     __tablename__ = "users"
