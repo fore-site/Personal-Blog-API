@@ -20,8 +20,6 @@ class UserRoute(MethodView):
     @blp.response(201, UserSchema)
     def post(self, user_data):    
         user_data.update({"createdAt": datetime.now(), "password": security.generate_password_hash(user_data["password"], "scrypt", 8)})
-        if user_data["id"] == 1:
-            user_data["role"] = "admin"
         try:
             db.session.execute(insert(User).values(user_data))
         except IntegrityError as e:
@@ -61,16 +59,16 @@ class FindUserRoute(MethodView):
 
 @blp.route("/profile")
 class CurrentUserRoute(MethodView):
-    @user_is_active
     @jwt_required()
+    @user_is_active
     @blp.response(200, UserSchema)
     def get(self):
         current_user = get_jwt_identity()
         user = db.session.scalars(select(User).where(User.id == int(current_user))).first()
         return user
     
-    @user_is_active
     @jwt_required()
+    @user_is_active
     @blp.arguments(UserUpdateSchema)
     def patch(self, user_body):
         current_user = get_jwt_identity()
@@ -107,23 +105,25 @@ class CurrentUserRoute(MethodView):
             else:
                 abort(401, message="Current password is incorrect.")
 
-    @user_is_active
+@blp.route("/profile/deactivate")
+class DeactivateUserRoute(MethodView):
     @jwt_required(verify_type=False)
-    def delete(self):
+    @user_is_active
+    def patch(self):
         current_user = get_jwt_identity()
-        db.session.execute(delete(User).where(User.id == int(current_user)))
+        db.session.execute(update(User), [{"id": int(current_user), "status": "inactive"}])
         db.session.commit()
 
         token = get_jwt()
         jti = token["jti"]
         ttype = token["type"]
         jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
-        return jsonify({"message": f"User successfully deleted. {ttype.capitalize()} token revoked."}), 204
+        return jsonify({"message": f"Account successfully deactivated. {ttype.capitalize()} token revoked."}), 202
 
 @blp.route("/logout")
 class UserLogout(MethodView):
-    @user_is_active
     @jwt_required(verify_type=False)
+    @user_is_active
     def post(self):
         token = get_jwt()
         jti = token["jti"]
@@ -133,8 +133,8 @@ class UserLogout(MethodView):
     
 @blp.route("/refresh")
 class RefreshToken(MethodView):
-    @user_is_active
     @jwt_required(refresh=True)
+    @user_is_active
     def post(self):
         access_token = create_access_token(identity=get_jwt_identity())
         return jsonify({"access_token": access_token}), 200

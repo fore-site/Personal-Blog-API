@@ -31,10 +31,10 @@ class AdminUserRoute(MethodView):
         user = db.session.scalars(select(User).where(User.id == user_id)).first()
         if not user:
             abort(404, message="User not found.")
-        elif not user.is_active:
+        elif user.status == "inactive" or user.status == "disabled":
             abort(409, message="User already deactivated.")
         else:
-            db.session.execute(update(User), [{"id": user_id, "is_active": False}])
+            db.session.execute(update(User), [{"id": user_id, "status": "disabled"}])
             db.session.commit()
             return jsonify({"message": "User successfully deactivated."}), 202
     

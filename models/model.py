@@ -3,6 +3,13 @@ from sqlalchemy import ForeignKey, func, select, DATETIME
 from sqlalchemy.orm import mapped_column, relationship, Mapped, column_property
 from datetime import datetime
 from typing import List
+# from utils.utils import default_role
+
+# def default_role(context):
+#     if context.get_current_parameters()["id"] == 1:
+#         return "admin"
+#     else:
+#         return "member"
 
 class User(db.Model):
     __tablename__ = "users"
@@ -13,8 +20,8 @@ class User(db.Model):
     createdAt: Mapped[datetime] = mapped_column(DATETIME)
     posts: Mapped[List["Post"]] = relationship(back_populates="user")
     comments: Mapped[List["Comment"]] = relationship(back_populates="user")
-    role: Mapped[str] = mapped_column(default="member")
-    is_active: Mapped[bool] = mapped_column(default=True)
+    status: Mapped[str] = mapped_column(default="active")
+    role: Mapped[str] = mapped_column(nullable=True, default= lambda context: "admin" if context.get_current_parameters()["id"] == 1 else "member")
 
 class Comment(db.Model):
     __tablename__ = "comments"
