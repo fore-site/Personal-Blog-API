@@ -1,10 +1,9 @@
-from flask.views import MethodView
-from flask_smorest import Blueprint, abort
+from flask_smorest import abort
 from datetime import datetime
 from sqlalchemy import select, delete, insert, update
 from config.extensions import db
-from models import Comment, Post
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from models import Comment, Post, User
+from flask_jwt_extended import get_jwt_identity
 
 def get_all_comments():
     all_posts = db.session.scalars(select(Comment)).all()
@@ -44,8 +43,9 @@ def edit_comment(comment_body, comment_id):
 
 def delete_comment(post_id, comment_id):
     comment = db.session.scalars(select(Comment).where(Comment.id == comment_id, Comment.post_id == post_id)).first()
+    user = db.session.scalars(select(User).where(User.id == int(get_jwt_identity()))).first()
     if comment:
-        if comment.user_id == int(get_jwt_identity()):
+        if comment.user_id == int(get_jwt_identity()) or user.role == "admin":
             db.session.execute(delete(Comment).where(Comment.id == comment_id))
             db.commit()
             return {"message": "Comment deleted"}, 204

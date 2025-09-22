@@ -2,7 +2,7 @@ from flask_smorest import abort
 from datetime import datetime
 from sqlalchemy import desc, select, update, insert, delete, or_, func
 from config.extensions import db
-from models import Post, Tag
+from models import Post, Tag, User
 from flask_jwt_extended import get_jwt_identity
 
 def get_posts(query_args):
@@ -61,9 +61,10 @@ def edit_post(post_body, post_id):
 def delete_post(post_id):
     # CHECK IF POST EXISTS
     post = db.session.scalars(select(Post).where(Post.id == post_id)).first()
+    user = db.session.scalars(select(User).where(User.id == int(get_jwt_identity()))).first()
     if not post:
         abort(404, message="Post not found.")
-    if post.user_id == int(get_jwt_identity()):
+    if post.user_id == int(get_jwt_identity()) or user.role == "admin":
         db.session.execute(delete(Post).where(Post.id == post_id))
         db.session.commit()
         return {"message": "Post deleted."}, 204
@@ -71,8 +72,12 @@ def delete_post(post_id):
         abort(403, message="Cannot delete another user's post")
 
 def link_post_tag(post_id, tag_id):
+    user = db.get_or_404(User, int(get_jwt_identity()))
     post = db.get_or_404(Post, post_id)
-    tag = db.get_or_404(Tag, tag_id)
-    post.tags.append(tag)
-    db.session.commit()
-    return tag
+    if post.user_id == user.id or user.role == "admin":
+        tag = db.get_or_404(Tag, tag_id)
+        post.tags.append(tag)
+        db.session.commit()
+        return tag
+    else:
+        abort(403, message="Cannot link tag to another user's post.")

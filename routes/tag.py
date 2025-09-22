@@ -1,11 +1,9 @@
 from flask.views import MethodView
-from flask_smorest import abort, Blueprint
-from sqlalchemy import select
-from config.extensions import db
-from models import Tag
+from flask_smorest import Blueprint
 from models.schema import TagSchema
 from flask_jwt_extended import jwt_required
 from middlewares.authMiddleware import user_is_active
+from controllers.tag import get_tags, get_single_tag
 
 blp = Blueprint("tags", __name__, description="operation on tags")
 
@@ -15,8 +13,7 @@ class TagsRoute(MethodView):
     @jwt_required()
     @blp.response(200, TagSchema(many=True))
     def get(self):
-        all_tags = db.session.scalar(select(Tag)).all()
-        return all_tags
+        return get_tags()
 
 @blp.route("/tags/<int:tag_id>")
 class TagRoute(MethodView):
@@ -24,5 +21,4 @@ class TagRoute(MethodView):
     @jwt_required()
     @blp.response(200, TagSchema(many=True))
     def get(self, tag_id):
-        tag = db.session.scalar(select(Tag).where(Tag.id == tag_id)).first()
-        return tag
+        return get_single_tag(tag_id)

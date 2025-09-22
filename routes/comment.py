@@ -37,8 +37,7 @@ class CommentIDRoute(MethodView):
     @blp.arguments(CommentSchema)
     @blp.response(200, CommentSchema)
     def put(self, comment_data, post_id, comment_id):
-        return edit_comment(comment_data, post_id, comment_id)
-
+        return edit_comment(comment_data, comment_id)
 
     @jwt_required()
     @user_is_active
