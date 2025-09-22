@@ -1,9 +1,9 @@
-from utils.blocklist import jwt_redis_blocklist, ACCESS_EXPIRES
 from flask import jsonify
 from flask_smorest import abort
 from config.extensions import db
 from sqlalchemy import select, delete, update, insert
-from models import User, Post, Comment, Tag
+from models import User, Post, Tag
+from flask_jwt_extended import get_jwt_identity
 
 def get_all_users():
     users = db.session.scalars(select(User)).all()
@@ -15,21 +15,23 @@ def suspend_user(user_id):
         abort(404, message="User not found.")
     elif user.status == "inactive" or user.status == "disabled":
         abort(409, message="User already deactivated.")
+    elif int(get_jwt_identity()) == user_id:
+        abort(403, message="Cannot suspend one's self.")
     else:
         db.session.execute(update(User), [{"id": user_id, "status": "disabled"}])
         db.session.commit()
-        return jsonify({"message": "User successfully deactivated."}), 202
+        return jsonify({"message": f"User {user.username} successfully deactivated."}), 202
     
 def restore_user(user_id):
-    user = select(User).where(User.id == user_id)
+    user = db.session.scalars(select(User).where(User.id == user_id)).first()
     if not user:
         abort(404, message="User not found")
     elif user.status == "active":
         abort(409, message="Account already restored")
     else:
-        db.session.execute(User, [{"id": user_id, "status": "active"}])
+        db.session.execute(update(User), [{"id": user_id, "status": "active"}])
         db.session.commit()
-        return jsonify({"message": "User successfully restored"}), 200
+        return jsonify({"message": f"User {user.username} successfully restored"}), 200
 
 def create_tag(tag_data):
     db.session.execute(insert(Tag), [tag_data])

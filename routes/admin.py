@@ -79,5 +79,5 @@ class PostTagRoute(MethodView):
     @admin_only
     @user_is_active
     @blp.response(200, TagSchema)
-    def patch(self, post_id, tag_id):
+    def delete(self, post_id, tag_id):
         return unlink_post_tags(post_id, tag_id)

@@ -9,16 +9,12 @@ blp = Blueprint("tags", __name__, description="operation on tags")
 
 @blp.route("/tags")
 class TagsRoute(MethodView):
-    @user_is_active
-    @jwt_required()
     @blp.response(200, TagSchema(many=True))
     def get(self):
         return get_tags()
 
 @blp.route("/tags/<int:tag_id>")
 class TagRoute(MethodView):
-    @user_is_active
-    @jwt_required()
-    @blp.response(200, TagSchema(many=True))
+    @blp.response(200, TagSchema)
     def get(self, tag_id):
         return get_single_tag(tag_id)

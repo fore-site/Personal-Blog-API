@@ -45,5 +45,5 @@ class PostTagRoute(MethodView):
     @jwt_required()
     @user_is_active
     @blp.response(200, TagSchema)
-    def post(self, post_id, tag_id):
+    def put(self, post_id, tag_id):
         return link_post_tag(post_id, tag_id)

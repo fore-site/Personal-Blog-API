@@ -5,11 +5,11 @@ from models import Tag
 
 
 def get_tags():
-    all_tags = db.session.scalar(select(Tag)).all()
+    all_tags = db.session.scalars(select(Tag)).all()
     return all_tags
 
 def get_single_tag(tag_id):
-    tag = db.session.scalar(select(Tag).where(Tag.id == tag_id)).first()
+    tag = db.session.scalars(select(Tag).where(Tag.id == tag_id)).first()
     if tag:
         return tag
     else:
