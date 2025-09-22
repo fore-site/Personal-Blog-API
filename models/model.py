@@ -14,7 +14,7 @@ class User(db.Model):
     posts: Mapped[List["Post"]] = relationship(back_populates="user")
     comments: Mapped[List["Comment"]] = relationship(back_populates="user")
     status: Mapped[str] = mapped_column(default="active")
-    role: Mapped[str] = mapped_column(nullable=True, default= lambda context: "admin" if context.get_current_parameters()["id"] == 1 else "member")
+    role: Mapped[str] = mapped_column(nullable=True, default= lambda context: "admin" if context.get_current_parameters().get("id") == 1 else "member")
 
 class Comment(db.Model):
     __tablename__ = "comments"

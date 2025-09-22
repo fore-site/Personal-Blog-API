@@ -33,7 +33,7 @@ class UserUpdateSchema(Schema):
 class PostSchema(Schema):
     class Meta():
         model = Post
-        exclude = ("comments",)
+        exclude = ("comments", "user_id")
 
     id = fields.Int(dump_only=True)
     content = fields.Str(required=True, validate=validate.Length(min=1))
@@ -62,7 +62,8 @@ class PostUpdateSchema(Schema):
     updatedAt = fields.DateTime(dump_only=True)
 
 class PostQuerySchema(Schema):
-    term = fields.Str()
+    tags = fields.Str()
+    q = fields.Str()
 
 class TagSchema(Schema):
     id = fields.Int(dump_only=True)

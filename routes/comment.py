@@ -1,11 +1,9 @@
 from flask.views import MethodView
-from flask_smorest import Blueprint, abort
-from datetime import datetime
-from sqlalchemy import select, delete, insert
-from config.extensions import db
-from models import Comment, Post
+from flask_smorest import Blueprint
 from models.schema import CommentSchema
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required
+from middlewares.authMiddleware import user_is_active
+from controllers.comment import get_all_comments, get_post_comments, make_comment, get_single_comment, edit_comment, delete_comment
 
 blp = Blueprint("comment", __name__, "operations on comment")
 
@@ -13,42 +11,36 @@ blp = Blueprint("comment", __name__, "operations on comment")
 class AllComments(MethodView):
     @blp.response(200, CommentSchema(many=True))
     def get(self):
-        all_posts = db.session.scalars(select(Post)).all()
-        return all_posts
-
+        return get_all_comments()
+    
 @blp.route("/posts/<int:post_id>/comments")
 class CommentRoute(MethodView):
     @blp.response(200, CommentSchema(many=True))
     def get(self, post_id):
-        result = db.session.scalars(select(Comment).where(Comment.post_id == post_id)).all()
-        return result
+        return get_post_comments(post_id)
     
     @jwt_required()
+    @user_is_active
     @blp.arguments(CommentSchema)
     @blp.response(201, CommentSchema)
     def post(self, comment_data, post_id):
-        post = select(Post).where(Post.id == post_id)
-        if post:
-            comment_data.update({"postedAt": datetime.now(), "editedAt": datetime.now(), "post_id": post_id,
-                                 "user_id": int(get_jwt_identity())})
-        else:
-            abort(404, message="Post not found.")
-        db.session.execute(insert(Comment), [comment_data])
-        db.session.commit()
-        return comment_data
+        return make_comment(comment_data, post_id)
     
 @blp.route("/posts/<int:post_id>/comments/<int:comment_id>")
 class CommentIDRoute(MethodView):
     @blp.response(200, CommentSchema)
     def get(self, post_id, comment_id):
-        comment = db.session.scalars(select(Comment).where(Comment.id == comment_id, Comment.post_id == post_id)).first()
-        return comment
+        return get_single_comment(post_id, comment_id)
 
     @jwt_required()
+    @user_is_active
+    @blp.arguments(CommentSchema)
+    @blp.response(200, CommentSchema)
+    def put(self, comment_data, post_id, comment_id):
+        return edit_comment(comment_data, post_id, comment_id)
+
+
+    @jwt_required()
+    @user_is_active
     def delete(self, post_id, comment_id):
-        comment = select(Comment).where(Comment.id == comment_id, Comment.post_id == post_id)
-        if comment:
-            db.session.execute(delete(Comment).where(Comment.id == comment_id))
-            db.commit()
-            return {"message": "Comment deleted"}, 204
-        abort(404, message="Comment does not exist")
+        return delete_comment(post_id, comment_id)
