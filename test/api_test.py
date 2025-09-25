@@ -8,14 +8,12 @@ register_body = {
 
 login_body = {
     "username": "foresite",
-    "password": "Bobo20114."
+    "password": ""
 }
 
 update_user_body = {
     "username": "fores",
     # "email": "ogunsanu007@gmail.com",
-    "current_password": "Bobo7711!",
-    # "new_password": "Bobo20114."
 }
 
 post_body = {
