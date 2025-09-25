@@ -3,7 +3,7 @@ import requests
 register_body = {
     "username": "foresite",
     "email": "ogunsanu007@gmail.com",
-    "password": "Bobo7711!"
+    "password": ""
 }
 
 login_body = {
