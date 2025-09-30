@@ -78,7 +78,7 @@ refresh_header = {
 # print(user)
 
 # GET POST(S)
-# all_posts = requests.get("http://127.0.0.1:5000/posts/4")
+# all_posts = requests.get("http://127.0.0.1:5000/posts?page=2&page_size=2")
 # posts = all_posts.json()
 # print(posts)
 

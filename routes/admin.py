@@ -14,8 +14,9 @@ class AllUsersRoute(MethodView):
     @admin_only
     @user_is_active
     @blp.response(200, UserSchema(many=True))
-    def get(self):
-        return get_all_users()
+    @blp.paginate()
+    def get(self, pagination_parameters):
+        return get_all_users(pagination_parameters)
 
 @blp.route("/admin/users/<int:user_id>/suspend")
 class AdminUserRoute(MethodView):

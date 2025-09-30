@@ -11,8 +11,9 @@ blp = Blueprint("posts", __name__, description="Operations on Posts")
 class PostRoute(MethodView):
     @blp.arguments(PostQuerySchema, location="query")
     @blp.response(200, PostSchema(many=True))
-    def get(self, query_args):
-        return get_posts(query_args)
+    @blp.paginate()
+    def get(self, query_args, pagination_parameters):
+        return get_posts(query_args, pagination_parameters)
     
     @jwt_required()
     @user_is_active

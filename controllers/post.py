@@ -5,7 +5,9 @@ from config.extensions import db
 from models import Post, Tag, User
 from flask_jwt_extended import get_jwt_identity
 
-def get_posts(query_args):
+def get_posts(query_args, pagination_parameters):
+    limit = pagination_parameters.page_size
+    offset = pagination_parameters.first_item
     if query_args:
         # MAKE A LIST OF THE KEYS IN THE KEY-VALUE PAIRS OF THE QUERY ARGUMENT
         keys = list(query_args.keys())
@@ -23,12 +25,18 @@ def get_posts(query_args):
             # else:
             #     result = result.filter(func.lower(getattr(Post, each_key))
             #     == query_args.get(each_key).lower())
-        result = db.session.scalars(result).all()
+        result = db.session.scalars(result
+                                    .limit(limit)
+                                    .offset(offset)).all()
         if result:
             return result
         else:
             abort(404, message="Post not found.")
-    all_posts = db.session.scalars(select(Post).order_by(desc(Post.createdAt))).all()
+    all_posts = db.session.scalars(select(Post)
+                                   .limit(pagination_parameters.page_size)
+                                   .offset(pagination_parameters.first_item)
+                                   .order_by(desc(Post.createdAt))).all()
+    pagination_parameters.item_count = len(all_posts)
     return all_posts
 
 def make_post(post_body):
