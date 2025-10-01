@@ -1,9 +1,9 @@
-from middlewares.authMiddleware import user_is_active
+from middlewares.authMiddleware import user_is_active, admin_only
 from flask.views import MethodView
 from flask_smorest import  Blueprint
 from flask_jwt_extended import jwt_required
 from models.schema import UserSchema, UserLoginSchema, UserUpdateSchema
-from controllers.user import login_user, register_user, get_user, get_profile, update_profile, deactivate_user, logout_user, refresh_token
+from controllers.user import login_user, register_user, get_user,get_all_users , get_profile, update_profile, deactivate_user, logout_user, refresh_token, suspend_user, restore_user
 
 blp = Blueprint("user", __name__, description="Operation on User")
 
@@ -40,8 +40,6 @@ class CurrentUserRoute(MethodView):
     def patch(self, user_body):
         return update_profile(user_body)
 
-@blp.route("/profile/deactivate")
-class DeactivateUserRoute(MethodView):
     @jwt_required(verify_type=False)
     @user_is_active
     def delete(self):
@@ -60,3 +58,31 @@ class RefreshToken(MethodView):
     @user_is_active
     def post(self):
         return refresh_token()
+    
+ # ADMIN ACTIONS
+ #    
+@blp.route("/users")
+class AllUsersRoute(MethodView):
+    @jwt_required()
+    @admin_only
+    @user_is_active
+    @blp.response(200, UserSchema(many=True))
+    @blp.paginate()
+    def get(self, pagination_parameters):
+        return get_all_users(pagination_parameters)
+    
+@blp.route("/users/<int:user_id>/suspend")
+class AdminUserRoute(MethodView):
+    @jwt_required(verify_type=False)
+    @admin_only
+    @user_is_active
+    def patch(self, user_id):
+        return suspend_user(user_id)
+        
+@blp.route("/admin/users/<int:user_id>/restore")
+class AdminRestoreUser(MethodView):
+    @jwt_required()
+    @admin_only
+    @user_is_active
+    def patch(self, user_id):
+        return restore_user(user_id)

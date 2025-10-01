@@ -2,8 +2,8 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from models.schema import PostSchema, PostUpdateSchema, PostQuerySchema, TagSchema
 from flask_jwt_extended import jwt_required
-from middlewares.authMiddleware import user_is_active
-from controllers.post import get_posts, make_post, get_single_post, edit_post, delete_post, link_post_tag
+from middlewares.authMiddleware import user_is_active, admin_only
+from controllers.post import get_posts, make_post, get_single_post, edit_post, delete_post, link_post_tag, unlink_post_tags
 
 blp = Blueprint("posts", __name__, description="Operations on Posts")
 
@@ -48,3 +48,14 @@ class PostTagRoute(MethodView):
     @blp.response(200, TagSchema)
     def put(self, post_id, tag_id):
         return link_post_tag(post_id, tag_id)
+    
+# ADMIN ACTIONS
+
+@blp.route("posts/<int:post_id>/tags/<int:tag_id>")
+class PostTagRoute(MethodView):
+    @jwt_required()
+    @admin_only
+    @user_is_active
+    @blp.response(200, TagSchema)
+    def delete(self, post_id, tag_id):
+        return unlink_post_tags(post_id, tag_id)

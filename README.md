@@ -50,10 +50,12 @@ pip install -r requirements.txt
 
 ### Run Migrations
 
+Read the [alembic documentation](https://alembic.sqlalchemy.org/en/latest/tutorial.html) in order to set up the configuration
+
 ```bash
-flask db init
-flask db migrate -m "Initial migration"
-flask db upgrade
+alembic init alembic
+alembic revision -m "Initial migration"
+alembic upgrade head
 ```
 
 ### Start the App
@@ -62,7 +64,7 @@ flask db upgrade
 flask run
 ```
 
-The API will be available at: `http://localhost:5000/`
+The API will be available at: `http://localhost:5000/api/v1`
 
 ---
 
@@ -136,11 +138,11 @@ REDIS_URL=redis://localhost:6379/0
 
 ## 🔐 Authentication & Authorization
 
-## 🔒 Token Revocation (Logout Support)
+### 🔒 Token Revocation (Logout Support)
 
 This API uses **Redis** to store and check **revoked JWTs**, making logout and token invalidation secure and reliable.
 
-### ✅ How It Works
+#### ✅ How It Works
 
 -   When a user logs out, their **access** or **refresh** token is added to a Redis **blocklist**.
 -   For each protected request, the token is checked against Redis.
@@ -172,7 +174,7 @@ Authorization: Bearer <access_token>
 }
 ```
 
-> You can also revoke refresh tokens by calling `/refresh` with a refresh token.
+> You can also revoke refresh tokens by inserting the refresh token in the authorization header.
 
 ---
 
@@ -189,16 +191,6 @@ If the refresh token is **not revoked**, a new access token will be issued.
 
 ---
 
-### 🔍 Token Checks in the API
-
-Each protected route will:
-
-1. Verify JWT signature and expiration
-2. Check if token is in Redis blocklist (revoked)
-3. If valid and not revoked → allow access
-
----
-
 ### 📬 Example Endpoints
 
 #### Users
@@ -207,7 +199,9 @@ Each protected route will:
 -   `GET /users/<id>` — Get single user
 -   `GET /profile` — Get self (current user)
 -   `PATCH /profile` — Update user/self
--   `DELETE /profile/deactivate` — Delete/deactivate current user account
+-   `PATCH /users/<id>/suspend` — Suspend user (admin only)
+-   `PATCH /users/<id>/restore` — Restore user (admin only)
+-   `DELETE /profile` — Delete/deactivate current user account
 
 #### Posts
 
@@ -215,7 +209,9 @@ Each protected route will:
 -   `GET /posts` — List posts (supports pagination)
 -   `GET /posts/<id>` — Get post
 -   `PUT /posts/<id>` — Update post
--   `DELETE /posts/<id>` — Delete post
+-   `DELETE /posts/<id>` — Delete post (admin and member roles)
+-   `PUT /posts/<int:post_id>/tags/<int:tag_id>` — Link post with tag
+-   `DELETE /admin/posts/<int:post_id>/tags/<int:tag_id>` — Unlink tag from post (admin)
 
 #### Comments
 
@@ -223,20 +219,19 @@ Each protected route will:
 -   `GET /posts/<id>comments` — Get comments for a post
 -   `GET /posts/<post_id>/comments/<comment_id>` — GET single comment for a post
 -   `PUT /posts/<post_id>/comments/<comment_id>` — Edit comment for a post
--   `DELETE /posts/<post_id>/comments/<comment_id>` — Delete single comment for a post
+-   `DELETE /posts/<post_id>/comments/<comment_id>` — Delete single comment for a post (admin and member roles)
 
 #### Tags
 
 -   `POST /tags` — Add a new tag (admin)
 -   `GET /tags` — List tags
+-   `GET /tags/<id>` — Get single tag
 -   `PUT /tags/<id>` — Edit tag (admin)
--   `DELETE /tags/<id>` — Remove tag (admin)
--   `PUT /posts/<int:post_id>/tags/<int:tag_id>` — Link tag with post
--   `DELETE /admin/posts/<int:post_id>/tags/<int:tag_id>` — Unlink tag from post (admin)
+-   `DELETE /tags/<id>` — Delete tag (admin)
 
 ---
 
-## 🔐 Auth Endpoints Recap
+## 🔐 Auth Endpoints Overview
 
 | Method | Endpoint    | Description                            |
 | ------ | ----------- | -------------------------------------- |
@@ -247,43 +242,15 @@ Each protected route will:
 
 ---
 
-### 📬 Other Admin Endpoints
-
-| Method | Endpoint                             | Description   |
-| ------ | ------------------------------------ | ------------- |
-| POST   | `/admin/users/<int:user_id>/suspend` | Suspend user  |
-| GET    | `/admin/users/<int:user_id>/restore` | Restore users |
-| DELETE | `/posts/<id>`                        | Delete post   |
-
----
-
 ## 📈 Pagination
 
 Paginated endpoints support:
 
 ```http
-GET /posts?page=2&size=10
+GET /posts?page=2&page_size=10
 ```
 
-Response will include X-Pagination header metadata:
-
-```json
-{
-  "items": [...],
-  "total": 50,
-  "pages": 5,
-  "current": 2
-}
-```
-
----
-
-## 🚫 Rate Limiting
-
-Rate limiting is enforced globally and/or per endpoint to prevent abuse.
-
-Example:
-`GET /posts` — limited to 10 requests per minute per IP.
+> Response will include header metadata "X-Pagination"
 
 ---
 
@@ -311,5 +278,3 @@ This project is licensed under the [MIT License](LICENSE).
 
 For any questions, feel free to reach out at:
 📫 [ogunsanu17@gmail.com](mailto:ogunsanu17@gmail.com)
-
----

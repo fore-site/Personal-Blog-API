@@ -1,3 +1,4 @@
+from flask import jsonify
 from flask_smorest import abort
 from datetime import datetime
 from sqlalchemy import desc, select, update, insert, delete, or_, func
@@ -86,3 +87,11 @@ def link_post_tag(post_id, tag_id):
         return tag
     else:
         abort(403, message="Cannot link tag to another user's post.")
+
+def unlink_post_tags(post_id, tag_id):
+    post = db.get_or_404(Post, post_id)
+    tag = db.get_or_404(Tag, tag_id)
+    post.tags.remove(tag)
+    db.session.commit
+    return jsonify({"message": "Post removed from tag.", "tag": tag})
+    

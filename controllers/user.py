@@ -4,10 +4,11 @@ from flask import jsonify
 from flask_smorest import abort
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt, get_jwt_identity
 from models import User
-from sqlalchemy import insert, select, update, delete
+from sqlalchemy import insert, select, update, delete, func
 from sqlalchemy.exc import IntegrityError
 from config.extensions import db
 from werkzeug import security
+
 
 def login_user(user_data):
     user = db.session.scalars(select(User).where(User.username == user_data["username"])).first()
@@ -105,3 +106,38 @@ def logout_user():
 def refresh_token():
     access_token = create_access_token(identity=get_jwt_identity())
     return jsonify({"access_token": access_token}), 200
+
+# ADMIN ACTIONS
+
+def get_all_users(pagination_parameters):
+    pagination_parameters.item_count = db.session.scalar(select(func.count()).select_from(User))
+    limit = pagination_parameters.page_size
+    offset = pagination_parameters.first_item
+    users = db.session.scalars(select(User)
+                               .limit(limit)
+                               .offset(offset)).all()
+    return users
+
+def suspend_user(user_id):
+    user = db.session.scalars(select(User).where(User.id == user_id)).first()
+    if not user:
+        abort(404, message="User not found.")
+    elif user.status == "inactive" or user.status == "disabled":
+        abort(409, message="User already deactivated.")
+    elif int(get_jwt_identity()) == user_id:
+        abort(403, message="Cannot suspend one's self.")
+    else:
+        db.session.execute(update(User), [{"id": user_id, "status": "disabled"}])
+        db.session.commit()
+        return jsonify({"message": f"User {user.username} successfully deactivated."}), 202
+    
+def restore_user(user_id):
+    user = db.session.scalars(select(User).where(User.id == user_id)).first()
+    if not user:
+        abort(404, message="User not found")
+    elif user.status == "active":
+        abort(409, message="Account already restored")
+    else:
+        db.session.execute(update(User), [{"id": user_id, "status": "active"}])
+        db.session.commit()
+        return jsonify({"message": f"User {user.username} successfully restored"}), 200
