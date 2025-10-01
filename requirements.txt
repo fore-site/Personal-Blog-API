@@ -6,3 +6,4 @@ flask-jwt-extended
 werkzeug
 redis
 flask-migrate
+Flask-Limiter

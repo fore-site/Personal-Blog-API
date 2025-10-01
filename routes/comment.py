@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required
 from middlewares.authMiddleware import user_is_active
 from controllers.comment import get_post_comments, make_comment, get_single_comment, edit_comment, delete_comment
 
-blp = Blueprint("comment", __name__, "operations on comment")
+blp = Blueprint("comment", __name__, description="operations on Comments")
     
 @blp.route("/posts/<int:post_id>/comments")
 class CommentRoute(MethodView):

@@ -6,9 +6,9 @@ from models.schema import UserSchema
 from models.schema import TagSchema
 from controllers.admin import get_all_users, suspend_user, restore_user, create_tag, edit_tag, delete_tag, unlink_post_tags
 
-blp = Blueprint("admin", __name__, "Operations on admin")
+blp = Blueprint("admin", __name__, descripition="Operations from admin endpoint")
 
-@blp.route("/admin/users")
+@blp.route("/users")
 class AllUsersRoute(MethodView):
     @jwt_required()
     @admin_only
@@ -34,7 +34,7 @@ class AdminRestoreUser(MethodView):
     def patch(self, user_id):
         return restore_user(user_id)
 
-@blp.route("/admin/tags")
+@blp.route("/tags")
 class AdminTagsRoute(MethodView):
     @jwt_required()
     @admin_only
@@ -44,7 +44,7 @@ class AdminTagsRoute(MethodView):
     def post(self, tag_data):
         return create_tag(tag_data)
 
-@blp.route("/admin/tags/<int:tag_id>")
+@blp.route("/tags/<int:tag_id>")
 class AdminTagRoute(MethodView):
     @jwt_required()
     @admin_only

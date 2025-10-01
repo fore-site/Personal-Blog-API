@@ -5,6 +5,7 @@ from sqlalchemy import select, delete, update, insert, func
 from models import User, Post, Tag
 from flask_jwt_extended import get_jwt_identity
 
+
 def get_all_users(pagination_parameters):
     pagination_parameters.item_count = db.session.scalar(select(func.count()).select_from(User))
     limit = pagination_parameters.page_size

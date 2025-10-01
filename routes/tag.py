@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required
 from middlewares.authMiddleware import user_is_active
 from controllers.tag import get_tags, get_single_tag
 
-blp = Blueprint("tags", __name__, description="operation on tags")
+blp = Blueprint("tags", __name__, description="Operation on Tags")
 
 @blp.route("/tags")
 class TagsRoute(MethodView):

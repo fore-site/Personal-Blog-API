@@ -44,7 +44,7 @@ class CurrentUserRoute(MethodView):
 class DeactivateUserRoute(MethodView):
     @jwt_required(verify_type=False)
     @user_is_active
-    def patch(self):
+    def delete(self):
         return deactivate_user
     
 @blp.route("/logout")
