@@ -6,7 +6,7 @@ basedir = path.abspath(path.dirname(__file__))
 
 load_dotenv(path.join(basedir, ".flaskenv"))
 
-SQLALCHEMY_DATABASE_URI = "sqlite:///blog.db"
+SQLALCHEMY_DATABASE_URI = environ.get("DATABASE_URI")
 SECRET_KEY = environ.get("SECRET_KEY")
 API_TITLE = "Blog API"
 API_VERSION = "v1"
