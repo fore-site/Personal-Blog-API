@@ -10,8 +10,9 @@ blp = Blueprint("tags", __name__, description="operation on tags")
 @blp.route("/tags")
 class TagsRoute(MethodView):
     @blp.response(200, TagSchema(many=True))
-    def get(self):
-        return get_tags()
+    @blp.paginate()
+    def get(self, pagination_parameters):
+        return get_tags(pagination_parameters)
 
 @blp.route("/tags/<int:tag_id>")
 class TagRoute(MethodView):

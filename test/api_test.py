@@ -78,9 +78,11 @@ refresh_header = {
 # print(user)
 
 # GET POST(S)
-# all_posts = requests.get("http://127.0.0.1:5000/posts?page=2&page_size=2")
+# all_posts = requests.get("http://127.0.0.1:5000/posts?tags=general")
+# header = all_posts.headers.get('X-Pagination')
 # posts = all_posts.json()
 # print(posts)
+# print(header)
 
 # MAKE A POST
 # user_post = requests.post("http://127.0.0.1:5000/posts", json=post_body, headers=header)
@@ -98,15 +100,12 @@ refresh_header = {
 # post = delete_post.json()
 # print(post)
 
-# GET COMMENTS
-# get_comments = requests.get("http://127.0.0.1:5000/comments")
-# comments = get_comments.json()
-# print(comment)
-
 # GET POST COMMENTS
-# get_post_comment = requests.get("http://127.0.0.1:5000/posts/1/comments")
+# get_post_comment = requests.get("http://127.0.0.1:5000/posts/4/comments?page=1&page_size=1")
+# header = get_post_comment.headers.get('X-Pagination')
 # comments = get_post_comment.json()
 # print(comments)
+# print(header)
 
 # MAKE COMMENT
 # make_comment = requests.post("http://127.0.0.1:5000/posts/4/comments", json=comment_body, headers=header)
@@ -144,9 +143,9 @@ refresh_header = {
 # print(tag_post)
 
 # GET ALL USERS
-# all_users = requests.get("http://127.0.0.1:5000/admin/users", headers=header)
-# users = all_users.json()
-# print(users)
+all_users = requests.get("http://127.0.0.1:5000/admin/users", headers=header)
+users = all_users.json()
+print(users)
 
 # SUSPEND USER
 # suspend_user = requests.patch("http://127.0.0.1:5000/admin/users/2/suspend", headers=header)

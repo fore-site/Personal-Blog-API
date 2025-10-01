@@ -4,8 +4,13 @@ from config.extensions import db
 from models import Tag
 
 
-def get_tags():
-    all_tags = db.session.scalars(select(Tag)).all()
+def get_tags(pagination_parameters):
+    limit = pagination_parameters.page_size
+    offset = pagination_parameters.first_item
+    all_tags = db.session.scalars(select(Tag)
+                                  .limit(limit)
+                                  .offset(offset)).all()
+    pagination_parameters.item_count = len(all_tags)
     return all_tags
 
 def get_single_tag(tag_id):

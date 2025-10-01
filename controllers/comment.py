@@ -1,17 +1,19 @@
 from flask_smorest import abort
 from datetime import datetime
-from sqlalchemy import select, delete, insert, update
+from sqlalchemy import select, delete, insert, update, func
 from config.extensions import db
 from models import Comment, Post, User
 from flask_jwt_extended import get_jwt_identity
 
-def get_all_comments():
-    all_posts = db.session.scalars(select(Comment)).all()
-    return all_posts
-
-def get_post_comments(post_id):
-    result = db.session.scalars(select(Comment).where(Comment.post_id == post_id)).all()
-    return result
+def get_post_comments(post_id, pagination_parameters):
+    pagination_parameters.item_count = db.session.scalar(select(func.count()).select_from(Comment))
+    limit = pagination_parameters.page_size
+    offset = pagination_parameters.first_item
+    all_comments = db.session.scalars(select(Comment)
+                                      .where(Comment.post_id == post_id)
+                                      .limit(limit)
+                                      .offset(offset)).all()
+    return all_comments
 
 def make_comment(comment_data, post_id):
     post = db.session.scalars(select(Post).where(Post.id == post_id)).first()

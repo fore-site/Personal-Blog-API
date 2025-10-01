@@ -51,8 +51,6 @@ class CommentSchema(Schema):
     content = fields.Str(required=True, validate=validate.Length(min=1))
     postedAt = fields.DateTime(dump_only=True)
     editedAt = fields.DateTime(dump_only=True)
-    user_id = fields.Int(dump_only=True)
-    post_id = fields.Int(dump_only=True)
     post = fields.Nested(PostSchema, only=("id", "title", "content"), dump_only=True)
     user = fields.Nested(UserSchema, only=("id", "username"), dump_only=True)
 

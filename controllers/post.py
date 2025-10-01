@@ -2,10 +2,11 @@ from flask_smorest import abort
 from datetime import datetime
 from sqlalchemy import desc, select, update, insert, delete, or_, func
 from config.extensions import db
-from models import Post, Tag, User
+from models import Post, Tag, User, PostTags
 from flask_jwt_extended import get_jwt_identity
 
 def get_posts(query_args, pagination_parameters):
+    pagination_parameters.item_count = db.session.scalar(select(func.count()).select_from(Post))
     limit = pagination_parameters.page_size
     offset = pagination_parameters.first_item
     if query_args:
@@ -17,14 +18,11 @@ def get_posts(query_args, pagination_parameters):
         # GET EACH VALUE OF THE QUERY ARGUMENT
             if each_key == "tags":
                 value = query_args.get(each_key)
-                result = result.filter(func.lower(getattr(Post, each_key)).icontains(value))
+                result = result.join(Post.tags).where(Tag.name == value)
             elif each_key == "q":
                 value = query_args.get(each_key).lower()
                 result = result.filter(or_(
                 Post.title.icontains(value), Post.content.icontains(value)))
-            # else:
-            #     result = result.filter(func.lower(getattr(Post, each_key))
-            #     == query_args.get(each_key).lower())
         result = db.session.scalars(result
                                     .limit(limit)
                                     .offset(offset)).all()
@@ -36,7 +34,6 @@ def get_posts(query_args, pagination_parameters):
                                    .limit(pagination_parameters.page_size)
                                    .offset(pagination_parameters.first_item)
                                    .order_by(desc(Post.createdAt))).all()
-    pagination_parameters.item_count = len(all_posts)
     return all_posts
 
 def make_post(post_body):

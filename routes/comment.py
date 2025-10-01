@@ -3,21 +3,16 @@ from flask_smorest import Blueprint
 from models.schema import CommentSchema
 from flask_jwt_extended import jwt_required
 from middlewares.authMiddleware import user_is_active
-from controllers.comment import get_all_comments, get_post_comments, make_comment, get_single_comment, edit_comment, delete_comment
+from controllers.comment import get_post_comments, make_comment, get_single_comment, edit_comment, delete_comment
 
 blp = Blueprint("comment", __name__, "operations on comment")
-
-@blp.route("/comments")
-class AllComments(MethodView):
-    @blp.response(200, CommentSchema(many=True))
-    def get(self):
-        return get_all_comments()
     
 @blp.route("/posts/<int:post_id>/comments")
 class CommentRoute(MethodView):
     @blp.response(200, CommentSchema(many=True))
-    def get(self, post_id):
-        return get_post_comments(post_id)
+    @blp.paginate()
+    def get(self, post_id, pagination_parameters):
+        return get_post_comments(post_id, pagination_parameters)
     
     @jwt_required()
     @user_is_active

@@ -6,9 +6,12 @@ from models import User, Post, Tag
 from flask_jwt_extended import get_jwt_identity
 
 def get_all_users(pagination_parameters):
-    pagination_parameters.item_count = select(func.count()).select_from(User)
-    users = db.session.scalars(select(User)).all()
-    print(pagination_parameters.first_item, pagination_parameters.last_item)
+    pagination_parameters.item_count = db.session.scalar(select(func.count()).select_from(User))
+    limit = pagination_parameters.page_size
+    offset = pagination_parameters.first_item
+    users = db.session.scalars(select(User)
+                               .limit(limit)
+                               .offset(offset)).all()
     return users
 
 def suspend_user(user_id):
