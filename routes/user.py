@@ -4,8 +4,9 @@ from flask_smorest import  Blueprint
 from flask_jwt_extended import jwt_required
 from models.schema import UserSchema, UserLoginSchema, UserUpdateSchema
 from controllers.user import login_user, register_user, get_user,get_all_users , get_profile, update_profile, deactivate_user, logout_user, refresh_token, suspend_user, restore_user
+from middlewares.limiter import limiter
 
-blp = Blueprint("user", __name__, description="Operation on User")
+blp = Blueprint("user", __name__, description="Operations on User")
 
 @blp.route("/register")
 class UserRoute(MethodView):
@@ -13,10 +14,11 @@ class UserRoute(MethodView):
     @blp.response(201, UserSchema)
     def post(self, user_data):    
         return register_user(user_data)
-    
+
 @blp.route("/login")
 class UserLogin(MethodView):
     @blp.arguments(UserLoginSchema)
+    @limiter.limit("1/second")
     def post(self, user_data):
         return login_user(user_data)
 

@@ -17,3 +17,6 @@ OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
 JWT_SECRET_KEY = environ.get("JWT_SECRET_KEY")
 JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
 JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=1)
+RATELIMIT_HEADERS_ENABLED = True
+RATELIMIT_STRATEGY = "sliding-window-counter"
+RATELIMIT_STORAGE_URI = "redis://localhost:6379"
