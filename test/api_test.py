@@ -7,8 +7,8 @@ register_body = {
 }
 
 login_body = {
-    "username": "foresite",
-    "password": ""
+    "username": "fores",
+    "password": "xxx"
 }
 
 update_user_body = {
@@ -30,11 +30,11 @@ tag_body = {
 }
 
 header = {
-    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1ODU2NzAwOSwianRpIjoiZjRlYjBjOTktODc3OS00OTBlLThlZjctY2NmZDAwMGE5NmUxIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjIiLCJuYmYiOjE3NTg1NjcwMDksImNzcmYiOiI5NWRhNWU1Ni05NmE5LTRlMGEtYWE2My0yMDRjNmZhYzExMTkiLCJleHAiOjE3NTg1Njc5MDl9.EesDBH8blBAEwoIH0tYL3LVQHgrbrjwfPRYQeIPrDjM"
+    "Authorization": "Bearer xxx"
 }
 
 refresh_header = {
-    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1ODU0MzAxMywianRpIjoiN2Q0ZTM4ZGEtYWIyZC00MDI0LWE3ZWMtYTY1MjM3ODc4ZWExIiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiIxIiwibmJmIjoxNzU4NTQzMDEzLCJjc3JmIjoiZmM2YmRkZjktOWU0NS00ZjZmLWI4MzQtZWM0NzU0OTRlMmQyIiwiZXhwIjoxNzU4NjI5NDEzfQ.WaPc76fTlGlFs6LS07qS27_RiGX_GB_ekAc4D55d614"
+    "Authorization": "Bearer xxx"
 }
 
 # GET A USER
@@ -68,7 +68,7 @@ refresh_header = {
 # print(user)
 
 # LOGOUT 
-# user_logout = requests.post("http://127.0.0.1:5000/logout", headers=refresh_header)
+# user_logout = requests.post("http://127.0.0.1:5000/logout", headers=header)
 # user = user_logout.json()
 # print(user)
 
@@ -78,7 +78,7 @@ refresh_header = {
 # print(user)
 
 # GET POST(S)
-# all_posts = requests.get("http://127.0.0.1:5000/posts?tags=general")
+# all_posts = requests.get("http://127.0.0.1:5000/posts/4")
 # header = all_posts.headers.get('X-Pagination')
 # posts = all_posts.json()
 # print(posts)
@@ -95,13 +95,13 @@ refresh_header = {
 # print(post)
 
 #DELETE A POST
-# delete_post = requests.delete("http://127.0.0.1:5000/posts/1", headers=header)
+# delete_post = requests.delete("http://127.0.0.1:5000/posts/4", headers=header)
 # delete_post.raise_for_status()
 # post = delete_post.json()
 # print(post)
 
 # GET POST COMMENTS
-# get_post_comment = requests.get("http://127.0.0.1:5000/posts/4/comments?page=1&page_size=1")
+# get_post_comment = requests.get("http://127.0.0.1:5000/posts/4/comments")
 # header = get_post_comment.headers.get('X-Pagination')
 # comments = get_post_comment.json()
 # print(comments)
@@ -143,9 +143,9 @@ refresh_header = {
 # print(tag_post)
 
 # GET ALL USERS
-all_users = requests.get("http://127.0.0.1:5000/admin/users", headers=header)
-users = all_users.json()
-print(users)
+# all_users = requests.get("http://127.0.0.1:5000/admin/users", headers=header)
+# users = all_users.json()
+# print(users)
 
 # SUSPEND USER
 # suspend_user = requests.patch("http://127.0.0.1:5000/admin/users/2/suspend", headers=header)
