@@ -51,7 +51,7 @@ class PostTagRoute(MethodView):
     
 # ADMIN ACTIONS
 
-@blp.route("posts/<int:post_id>/tags/<int:tag_id>")
+@blp.route("/posts/<int:post_id>/tags/<int:tag_id>")
 class PostTagRoute(MethodView):
     @jwt_required()
     @admin_only

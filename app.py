@@ -40,7 +40,4 @@ def create_app():
     api.register_blueprint(CommentBlueprint)
     api.register_blueprint(TagBlueprint)
 
-    if __name__ == "__main__":
-        app.run()
-
-create_app()
+    return app
