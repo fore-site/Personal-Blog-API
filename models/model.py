@@ -9,6 +9,7 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(unique=True)
     email: Mapped[str] = mapped_column(unique=True)
+    imageUrl: Mapped[str] = mapped_column(nullable=True)
     password: Mapped[str]
     createdAt: Mapped[datetime] = mapped_column(DATETIME)
     posts: Mapped[List["Post"]] = relationship(back_populates="user")

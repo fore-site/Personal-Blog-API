@@ -53,6 +53,10 @@ def get_profile():
 def update_profile(user_body):
     current_user = get_jwt_identity()
     user = db.session.scalars(select(User).where(User.id == int(current_user))).first()
+    if user_body.get("imageUrl"):
+        db.session.execute(update(User), [{"id": user.id, "imageUrl": user_body.get("imageUrl")}])
+        db.session.commit()
+        return {"message": "Profile photo updated."}, 200
     if user_body.get("username"):
         if user_body.get("current_password"):
             if security.check_password_hash(user.password, user_body["current_password"]):
@@ -84,6 +88,11 @@ def update_profile(user_body):
             return {"message": f"{credential} successfully updated"}, 200
         else:
             abort(401, message="Current password is incorrect.")
+
+def delete_profile_picture():
+    current_user = get_jwt_identity()
+    db.session.execute(update(User), [{"id": int(current_user), "imageUrl": None}])
+    db.session.commit()
 
 def deactivate_user():
     current_user = get_jwt_identity()

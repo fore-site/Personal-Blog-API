@@ -5,12 +5,8 @@ from models import User
 from config.extensions import db
 from sqlalchemy import select
 
-def role():
-    current_user = db.session.scalars(select(User).where(User.id == int(get_jwt_identity()))).first()
-    return current_user.role
-
 limiter = Limiter(
     key_func=get_remote_address,
     meta_limits=["2/hour, 4/day"],
-    application_limits_exempt_when=lambda: role() == "admin" 
+    application_limits_exempt_when=lambda: get_jwt_identity() == 1
 )

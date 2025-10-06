@@ -3,7 +3,7 @@ from flask.views import MethodView
 from flask_smorest import  Blueprint
 from flask_jwt_extended import jwt_required
 from models.schema import UserSchema, UserLoginSchema, UserUpdateSchema
-from controllers.user import login_user, register_user, get_user,get_all_users , get_profile, update_profile, deactivate_user, logout_user, refresh_token, suspend_user, restore_user
+from controllers.user import login_user, register_user, get_user,get_all_users , get_profile, update_profile, deactivate_user, logout_user, refresh_token, suspend_user, restore_user, delete_profile_picture
 from middlewares.limiter import limiter
 
 blp = Blueprint("user", __name__, description="Operations on User")
@@ -46,6 +46,13 @@ class CurrentUserRoute(MethodView):
     @user_is_active
     def delete(self):
         return deactivate_user
+
+@blp.route("/profile/picture")
+class UserProfilePicture(MethodView):
+    @jwt_required()
+    @user_is_active
+    def delete(self):
+        return delete_profile_picture
     
 @blp.route("/logout")
 class UserLogout(MethodView):
