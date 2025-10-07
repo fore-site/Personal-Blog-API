@@ -19,4 +19,5 @@ JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
 JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=1)
 RATELIMIT_HEADERS_ENABLED = True
 RATELIMIT_STRATEGY = "sliding-window-counter"
-RATELIMIT_STORAGE_URI = "redis://localhost:6379"
+RATELIMIT_STORAGE_URI = "redis://red-d3ipkrbe5dus739aui50:6379"
+# "redis://localhost:6379"
