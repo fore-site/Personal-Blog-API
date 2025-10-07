@@ -7,3 +7,4 @@ werkzeug
 redis
 flask-migrate
 Flask-Limiter
+gunicorn
