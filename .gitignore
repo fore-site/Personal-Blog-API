@@ -29,6 +29,7 @@ lib64/
 parts/
 sdist/
 var/
+alembic/
 wheels/
 share/python-wheels/
 *.egg-info/
@@ -164,6 +165,7 @@ cython_debug/
 
 # Database
 blog.db
+alembic.ini
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

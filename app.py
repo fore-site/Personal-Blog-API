@@ -29,8 +29,8 @@ def create_app():
         return jwt_payload["jti"] in jwt_redis_blocklist
     
     api = Api(app)
-    # with app.app_context():
-    #     db.create_all()
+    with app.app_context():
+        db.create_all()
 
     import warnings
     warnings.filterwarnings("ignore", message="Multiple schemas resolved to the name ")
