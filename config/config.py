@@ -6,7 +6,7 @@ basedir = path.abspath(path.dirname(__file__))
 
 load_dotenv(path.join(basedir, ".env"))
 
-SQLALCHEMY_DATABASE_URI = "sqlite:///blog.db"
+SQLALCHEMY_DATABASE_URI = environ.get("DATABASE_URI")
 SECRET_KEY = environ.get("SECRET_KEY")
 API_TITLE = "Blog API"
 API_VERSION = "v1"
@@ -19,5 +19,5 @@ JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
 JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=1)
 RATELIMIT_HEADERS_ENABLED = True
 RATELIMIT_STRATEGY = "sliding-window-counter"
-RATELIMIT_STORAGE_URI = environ.get("REDIS_URL")
+RATELIMIT_STORAGE_URI = environ.get("REDIS_URI")
 # "redis://localhost:6379"
