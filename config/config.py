@@ -1,4 +1,4 @@
-from os import path, environ, getenv
+from os import path, environ
 from dotenv import load_dotenv
 from datetime import timedelta
 
@@ -19,5 +19,5 @@ JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
 JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=1)
 RATELIMIT_HEADERS_ENABLED = True
 RATELIMIT_STRATEGY = "sliding-window-counter"
-RATELIMIT_STORAGE_URI = "redis://red-d3ipkrbe5dus739aui50:6379"
+RATELIMIT_STORAGE_URI = environ.get("REDIS_URL")
 # "redis://localhost:6379"
